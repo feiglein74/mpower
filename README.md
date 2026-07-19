@@ -354,8 +354,18 @@ Durch Aus- und Wiedereinstecken verifiziert — **alle Änderungen haben überle
 | Relais | alle drei kamen wieder **eingeschaltet** hoch |
 | `vpower_cfg` | wird beim Booten zurückgesetzt ❌ (folgenlos, siehe oben) |
 
-Damit ist `cfgmtd -w -p /etc/` als Persistenzweg bestätigt — mit der Ausnahme
-von `vpower_cfg`, das die Firmware beim Start neu schreibt.
+Damit ist `cfgmtd -w -p /etc/` als Persistenzweg bestätigt. Über mehrere
+Neustarts und einen echten Stromausfall hinweg geprüft:
+
+| Datei | Übersteht `cfgmtd` + Neustart |
+|---|---|
+| `cfg/mgmt` | ✅ |
+| `cfg/config_file` | ✅ |
+| `mqtt/client/mqtt.cfg` | ✅ |
+| `cfg/vpower_cfg` | ❌ — die Firmware schreibt sie beim Start neu |
+
+`vpower_cfg` ist die einzige Ausnahme, und sie ist folgenlos: Der Eintrag
+`vpower.<N>.enabled` beeinflusst die Messung ohnehin nicht.
 
 Das Gerät braucht nach einem Neustart rund **60 Sekunden**, bis es wieder auf
 Ping antwortet. Die LED blinkt in den ersten Minuten (`freq=1`), während `mcad`
