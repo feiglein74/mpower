@@ -315,8 +315,15 @@ Durch Aus- und Wiedereinstecken verifiziert — **alle Änderungen haben überle
 | LED | `freq=0`, kein Blinken ✅ |
 | MQTT-Client | per `rc.poststart` selbstständig gestartet ✅ |
 | Relais | alle drei kamen wieder **eingeschaltet** hoch |
+| `vpower_cfg` | wird beim Booten zurückgesetzt ❌ (folgenlos, siehe oben) |
 
-Damit ist `cfgmtd -w -p /etc/` als Persistenzweg bestätigt.
+Damit ist `cfgmtd -w -p /etc/` als Persistenzweg bestätigt — mit der Ausnahme
+von `vpower_cfg`, das die Firmware beim Start neu schreibt.
+
+Das Gerät braucht nach einem Neustart rund **60 Sekunden**, bis es wieder auf
+Ping antwortet. Die LED blinkt in den ersten Minuten (`freq=1`), während `mcad`
+seine Kontaktversuche zum nicht existierenden Controller startet, und wird
+danach ruhig (`freq=0`).
 
 **Wichtig für die Erwartungshaltung:** Der MQTT-Client braucht nach dem
 Einschalten **rund vier Minuten**, bis er publiziert — trotz `sleep 10` in
@@ -464,22 +471,27 @@ untereinander kann deshalb prinzipiell nichts aufdecken.
 
 **Die Spannungsmessung läuft ruhig:** σ = 0,31 V auf 229 V, also 0,14 %.
 
-**Die Messung ist je Port ab Werk abschaltbar — und war es hier.** Ports 2 und 3
-meldeten über Stunden *exakt* `0.0 W`, weil ihr Messkanal deaktiviert war:
+**Alle drei Ports messen immer — unabhängig vom `enabled`-Flag.** Das ist
+kontraintuitiv, weil `/proc/power/enabled<N>` und das JSON-Feld `"enabled"` bei
+unbenutzten Ports auf `0` stehen. Gemessen wird trotzdem:
 
 ```
-/etc/persistent/cfg/vpower_cfg:   vpower.2.enabled=off
-                                  vpower.3.enabled=off
-/proc/power/enabled2, enabled3:   0
+enabled3=0   pwr=39.205 → 39.138 → 39.319 → 39.302 W    (lebende Messwerte)
+HTTP-API:    {"port":3, "enabled":0, "power":39.32}
 ```
 
-Das JSON zeigt es als `"enabled":0`. Einschalten geht zur Laufzeit mit
-`echo 1 > /proc/power/enabled<N>`; dauerhaft über `vpower_cfg` plus
-`cfgmtd -w -p /etc/`. **Ohne das misst das Gerät nur Port 1** — leicht zu
-übersehen, weil die Nullen aussehen wie „keine Last".
+`enabled` beschreibt also die Aktivierung des Ports auf Controller-Seite, nicht
+den Messkanal. Wer `0` als „misst nicht" liest, zieht den falschen Schluss —
+diese Fehldeutung hat hier einige Umwege gekostet.
 
-Eine Empfindlichkeitsgrenze ist das nicht: Mit aktiviertem Kanal wurden Werte
-bis herunter zu 2,9 W sauber gemeldet.
+Zeigt ein Port dauerhaft exakt `0.0 W`, hängt schlicht nichts Verbrauchendes
+daran. Eine Empfindlichkeitsgrenze wurde nicht gefunden; Werte bis herunter zu
+2,9 W wurden sauber gemeldet.
+
+Der Eintrag `vpower.<N>.enabled` in `/etc/persistent/cfg/vpower_cfg` lässt sich
+zwar ändern und mit `cfgmtd` schreiben, wird beim Booten aber wieder auf die
+Werkseinstellung zurückgesetzt. Da er die Messung ohnehin nicht beeinflusst, ist
+das folgenlos.
 
 ### Mittelungsfenster: kurze Lasten werden zu niedrig gemeldet
 
