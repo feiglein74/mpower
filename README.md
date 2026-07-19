@@ -464,24 +464,89 @@ untereinander kann deshalb prinzipiell nichts aufdecken.
 
 **Die Spannungsmessung läuft ruhig:** σ = 0,31 V auf 229 V, also 0,14 %.
 
-**Es gibt eine Totzone bei kleinen Lasten.** Unbelegte Ports melden über Stunden
-hinweg *exakt* `0.0 W` und `0.000 A` — nie einen Rauschwert. Ein 16-Bit-ADC mit
-bis zu 32-facher Verstärkung würde dort etwas sehen; die Null ist also eine
-Schwelle im DSP-Code, keine Grenze der Hardware. Kleine Standby-Verbraucher
-werden damit vermutlich als 0 gemeldet. Wo die Schwelle liegt, wurde nicht
-ermittelt.
+**Die Messung ist je Port ab Werk abschaltbar — und war es hier.** Ports 2 und 3
+meldeten über Stunden *exakt* `0.0 W`, weil ihr Messkanal deaktiviert war:
+
+```
+/etc/persistent/cfg/vpower_cfg:   vpower.2.enabled=off
+                                  vpower.3.enabled=off
+/proc/power/enabled2, enabled3:   0
+```
+
+Das JSON zeigt es als `"enabled":0`. Einschalten geht zur Laufzeit mit
+`echo 1 > /proc/power/enabled<N>`; dauerhaft über `vpower_cfg` plus
+`cfgmtd -w -p /etc/`. **Ohne das misst das Gerät nur Port 1** — leicht zu
+übersehen, weil die Nullen aussehen wie „keine Last".
+
+Eine Empfindlichkeitsgrenze ist das nicht: Mit aktiviertem Kanal wurden Werte
+bis herunter zu 2,9 W sauber gemeldet.
+
+### Mittelungsfenster: kurze Lasten werden zu niedrig gemeldet
+
+Mit 21 Messungen pro Sekunde über 86 s und fünf Schaltvorgängen an einer
+40-W-Glühlampe gemessen. Der jeweils erste Messwert nach dem Einschalten:
+
+```
+39,46 W   10,20 W   5,99 W   2,90 W   11,96 W
+```
+
+Keine Messung lag über dem Ruhewert von 39,6 W — der Einschaltstoß einer kalten
+Glühwendel (rund das Zehnfache des Betriebsstroms) taucht **nirgends** auf.
+
+Der Grund ist nicht die Abtastrate, sondern die Mittelung: Der Chip bildet
+Effektivwerte über ein Fenster von etwa einer Sekunde. Fällt das Einschalten
+mitten hinein, enthält der Mittelwert auch die stromlose Zeit davor — daher die
+Bruchteile. Ein 100-ms-Stoß von ~350 W trägt zu einem Sekundenmittel nur wenige
+Watt bei und verschwindet darin.
+
+Praktische Folgen:
+
+- **Lastspitzen sind unsichtbar.** Anlaufströme von Motoren, Kompressoren oder
+  Netzteilen erfasst dieses Gerät prinzipbedingt nicht.
+- **Kurz laufende Verbraucher werden zu niedrig gemeldet**, solange sie nur einen
+  Teil des Mittelungsfensters abdecken.
+- **Dauerlasten und die Energiezählung sind davon nicht betroffen.** `cf_count`
+  akkumuliert Impulse, statt Momentanwerte zu mitteln.
 
 **Die Nachkommastellen sind Scheingenauigkeit.** `9.542111933 W` suggeriert
 Nanowatt-Auflösung; die reale Quantisierung der Energiezählung beträgt
 0,3125 Wh je Impuls.
 
-### Wie man es überprüfen würde
+### Gegenprobe mit bekannter Last
 
-Mit einer **bekannten ohmschen Last** — Glühlampe oder Heizlüfter mit
-aufgedruckter Wattzahl. Ohmsch heißt Leistungsfaktor ≈ 1, damit fällt die
-PF-Messung als Fehlerquelle weg. Ein Schaltnetzteil (Notebook, PF ≈ 0,4) taugt
-dafür nicht: Dessen Eigenschwankung lag im Test bei σ = 1,63 W auf 9,22 W, also
-18 % — darin verschwindet jeder Messfehler des Geräts.
+Gemessen an einer **40-W-Glühlampe** (ohmsch, damit fällt die PF-Messung als
+Fehlerquelle weg), 30 Messungen über 61 s:
+
+| | |
+|---|---|
+| Leistung | 39,62 W, σ = 0,066 W (**0,17 %** Streuung) |
+| Strom | 0,1719 A, σ = 0,0002 A |
+| Spannung | 230,66 V |
+| Leistungsfaktor | **0,999** — bestätigt die PF-Messung, bei einer Glühlampe ist 1,0 zwingend |
+
+Abweichung zum Nennwert: **−0,9 %**. Spannungskorrigiert (bei 230,66 V müsste
+eine 40-W-Lampe 40,23 W ziehen, da P ∝ U²): **−1,5 %**.
+
+Gegenprobe über das ohmsche Gesetz:
+
+```
+gemessen:  R = U/I = 230,66 / 0,1719 = 1342 Ω
+Nennwert:  R = U²/P = 230² / 40      = 1322 Ω
+```
+
+Die 1,5 % höhere Widerstand passen zu einer **gealterten Glühwendel** — Wolfram
+verdampft über die Lebensdauer, der Draht wird dünner.
+
+**Was das beweist und was nicht:** Die *Präzision* ist ausgezeichnet (0,17 %
+Streuung). Die *absolute Genauigkeit* lässt sich damit nicht besser als auf ±5 %
+eingrenzen, denn die Referenz ist schlechter als die Messung: Glühlampen haben
+typisch ±5 % Fertigungstoleranz, dazu kommt die Alterung. Die Anzeige ist mit
+dem Nennwert verträglich — mehr gibt der Versuchsaufbau nicht her. Für eine
+belastbare Aussage bräuchte es ein kalibriertes Referenzmessgerät.
+
+Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
+schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
+verschwindet jeder Messfehler des Geräts.
 
 ## Zwei MQTT-Wege
 
