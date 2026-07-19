@@ -682,6 +682,35 @@ aufgefallen, nicht an der Messtechnik. Aus den Fehlmessungen wurde zwischenzeitl
 geschlossen, die Genauigkeit hänge stark an der Lastart. Das war falsch und ist
 mit den korrigierten Messungen widerlegt.
 
+#### Quervalidierung über die Leistungsbilanz
+
+Ein zweiter, unabhängiger Nachweis. Mit der Janitza **vor** der Leiste und dem
+Trafo-Netzteil an Port 2 muss die Differenz beider Messungen dem Eigenverbrauch
+der Leiste entsprechen:
+
+```
+Janitza (ganze Leiste)      16,50 W
+mPower  (nur Port 2)        14,49 W
+                            ───────
+Differenz                    2,01 W
+Eigenverbrauch (separat)     2,09 W     Abweichung 0,08 W
+```
+
+Läge der mPower um 20 % daneben, käme hier ein Rest von rund 5 W oder −0,9 W
+heraus. Die Genauigkeit ist damit auf zwei voneinander unabhängigen Wegen belegt.
+
+#### Und wie gut ist der Shelly?
+
+Bei derselben Messung, zur selben Zeit:
+
+| | Janitza | Shelly | Abweichung |
+|---|---|---|---|
+| Wirkleistung | 16,50 W | 18,00 W | **+9,1 %** |
+
+**Der mPower liegt näher an der Wahrheit als der Shelly** — unter 2 % gegenüber
+gut 9 %. Ein Gerät von 2015, dessen Plattform seit Jahren eingestellt ist, misst
+genauer als ein aktuelles Produkt.
+
 ### Quervergleich mit einem Shelly 4PM
 
 Die Leiste hing hinter einem Shelly 4PM, sodass beide Geräte dieselben Lasten
