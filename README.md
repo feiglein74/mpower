@@ -705,10 +705,13 @@ Bei derselben Messung, zur selben Zeit:
 
 | | Janitza | Shelly | Abweichung |
 |---|---|---|---|
-| Wirkleistung | 16,50 W | 18,00 W | **+9,1 %** |
+| Wirkleistung | 16,50 W | 17,7 – 18,1 W | **+7 bis +10 %** |
+
+Die Anzeige des Shelly schwankt dabei um mehrere Zehntelwatt, obwohl die Last
+konstant ist — das Trafo-Netzteil zieht mit σ = 0,05 W praktisch unverändert.
 
 **Der mPower liegt näher an der Wahrheit als der Shelly** — unter 2 % gegenüber
-gut 9 %. Ein Gerät von 2015, dessen Plattform seit Jahren eingestellt ist, misst
+rund 9 %. Ein Gerät von 2015, dessen Plattform seit Jahren eingestellt ist, misst
 genauer als ein aktuelles Produkt.
 
 ### Quervergleich mit einem Shelly 4PM
