@@ -374,20 +374,30 @@ sekundengenau. Das Kürzel `GDT` im `date`-Ausgabe ist nur der generische
 Sommerzeit-Name aus der POSIX-Zeitzone, kein Fehler.
 
 Ungeklärt bleibt, **warum** der Prozess sich alle paar Minuten beendet.
-`ntpclient` schreibt selbst nichts ins Log — nur init meldet das Beenden. Eine
-naheliegende, aber **nicht verifizierte** Vermutung: `pool.ntp.org` liefert bei
-jeder Auflösung wechselnde Adressen, und bei einer nicht erreichbaren steigt der
-Client aus. Wer das abstellen will, könnte einen festen, gut erreichbaren Server
-eintragen — etwa den eigenen Router:
+`ntpclient` schreibt selbst nichts ins Log — nur init meldet das Beenden.
 
-```bash
-# in /tmp/system.cfg aendern, dann persistieren:
-ntpclient.1.server=10.10.1.1
-cfgmtd -w -p /etc /tmp/system.cfg
-```
+Eine naheliegende Vermutung wäre, dass `pool.ntp.org` wechselnde Adressen
+liefert und der Client bei einer unerreichbaren aussteigt. **Diese Erklärung
+trägt aber nicht:** Zeigt man `ntpclient` auf einen Host, der gar nicht
+antwortet, bleibt er hängen, statt sich zu beenden. Die Ursache der Neustarts
+ist damit weiterhin offen.
 
-Getestet wurde das hier nicht. Da die Uhr ohnehin korrekt läuft, ist es reine
-Kosmetik.
+**Kein lokaler NTP-Server verfügbar.** Naheliegend wäre, statt des Pools den
+eigenen Router einzutragen. In diesem Netz geht das nicht — mit einem
+NTP-Client-Paket (UDP 123) geprüft:
+
+| Host | Rolle | Antwort |
+|---|---|---|
+| `10.10.1.1` | Gateway des Geräts | keine |
+| `10.0.0.251` | DNS-Server | keine |
+| `10.0.0.1` | Gateway im Hauptnetz | keine |
+| `10.0.0.171` | Home Assistant | keine |
+
+Ein Umstellen auf `ntpclient.1.server=10.10.1.1` würde die Zeitsynchronisation
+also **kaputtmachen**, nicht verbessern. Wer die Neustarts trotzdem loswerden
+will, bräuchte einen echten NTP-Dienst im LAN (etwa `chrony` auf dem
+Home-Assistant-Host) und würde erst danach umstellen. Da die Uhr über
+`pool.ntp.org` sekundengenau läuft, besteht kein funktionaler Anlass.
 
 ## Zwei MQTT-Wege
 
