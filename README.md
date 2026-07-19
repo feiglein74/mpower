@@ -721,15 +721,46 @@ das die Phase verschiebt aber kaum verzerrt, stimmen beide fast überein.
 Wer Werte zweier Messgeräte vergleicht, sollte das prüfen, bevor er aus einer
 Differenz auf einen Messfehler schließt.
 
-### Eigenverbrauch der Leiste: 2,6 W
+### Eigenverbrauch der Leiste: rund 2,1 W
 
-Gemessen, indem alle Ports leer geschaltet wurden — der mPower meldete über 13
-Messungen exakt `0,000 W` auf allen dreien, der vorgeschaltete Shelly zeigte
-weiterhin **2,6 W**. Das ist der Verbrauch der Leiste selbst: WLAN, SoC, Relais
-und Messelektronik.
+Gemessen mit der Janitza UMG 96RM, die dafür **vor** die Leiste geschaltet wurde,
+bei komplett leeren Ports:
 
-Rund 23 kWh im Jahr, nur fürs Dasein. Erklärt auch, warum das Gehäuse handwarm
-wird.
+| | |
+|---|---|
+| Wirkleistung | **2,09 W** im Ruhezustand |
+| Spitzen | bis **2,3 W**, wenn das Gerät aktiv ist |
+| Scheinleistung | 4,30 VA |
+| `cos φ` | 0,99 |
+| Leistungsfaktor (`P/S`) | 0,486 |
+| **THD des Stroms** | **176 %** |
+
+Rund 18 kWh im Jahr, nur fürs Dasein. Die Spitzen fallen vermutlich mit dem
+MQTT-Publisher zusammen, der alle 60 s alle Ports abfragt, dazu WLAN-Aktivität.
+
+Ein früherer Wert von 2,6 W stammte vom Shelly und wurde zeitversetzt gemessen —
+ob die Differenz Messfehler oder ein erwischter Aktivitätspeak war, lässt sich
+aus zwei Einzelwerten nicht trennen.
+
+#### Ein Lehrbuchbeispiel für Oberwellen
+
+Die Leiste versorgt sich über ein kleines Schaltnetzteil ohne
+Leistungsfaktorkorrektur. Das Ergebnis ist lehrreich:
+
+```
+Gesamtstrom      18,5 mA
+Grundschwingung   9,2 mA   (49 %)
+Oberwellen       16,1 mA   (87 %)
+```
+
+`cos φ` von 0,99 sagt: Die Grundschwingung ist fast exakt in Phase — ein Gerät,
+das nur den Verschiebungsfaktor anzeigt, würde hier eine nahezu ideale Last
+melden. Tatsächlich beträgt der echte Leistungsfaktor nur 0,486, weil 87 % des
+Stroms Oberwellen sind. Die Verzerrungsblindleistung liegt bei 3,75 var — fast
+doppelt so hoch wie die Wirkleistung.
+
+Genau dieser Unterschied hat weiter oben für scheinbar widersprüchliche
+PF-Anzeigen zwischen den Geräten gesorgt.
 
 ### Vom Messchip bis zum Wert in Home Assistant
 
