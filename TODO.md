@@ -5,38 +5,33 @@ Projekt funktioniert — es sind offene Fragen, keine Fehler.
 
 ---
 
-## 1. Referenzmessung wiederholen — Aufbau prüfen
+## 1. Fehlerkurve über mehrere Lastarten
 
-Ein erster Versuch mit einer **Janitza UMG 96RM** lieferte widersprüchliche
-Ergebnisse und wurde verworfen (Begründung im README). Die Abweichung des mPower
-kehrte zwischen zwei Lasten das Vorzeichen um, und beim GaN-Netzteil verletzte
-die Referenzmessung die Energieerhaltung: 14,5 W Eingang bei 20 W Ausgang wären
-138 % Wirkungsgrad.
+Der erste belastbare Messpunkt gegen die Janitza UMG 96RM steht (siehe README):
+Bei einem GaN-Netzteil mit 47 % Stromverzerrung liegt der mPower **innerhalb von
+2 %**. Was fehlt, ist der Verlauf über verschiedene Lastarten und Verzerrungsgrade.
 
-### Vor einem neuen Versuch klären
+**Wichtig:** Direktanschluss verwenden, keinen Wandler. Der vorhandene 30/5-A-Typ
+ist für diese Ströme unbrauchbar — Details im README.
 
-- **Stromwandler-Verhältnis** — gemessen wurden 0,13 bis 0,22 A. Ist ein Wandler
-  für etwa 100 A konfiguriert, liegt das bei 0,1 % des Nennstroms; die
-  Klasse-0,2-Genauigkeit gilt dort nicht.
-- **Polarität des Strompfads** — `cos φ` war negativ (−0,61) bei betragsmäßig
-  stimmigem Wert. Deutet auf vertauschte k/l-Anschlüsse.
-- **Direktanschluss statt Wandler** wäre bei diesen Strömen vermutlich nötig.
-
-Als Plausibilitätsprüfung eignet sich der **Wirkungsgrad**: Ein Netzteil kann
-nicht mehr abgeben als es aufnimmt. Das hat den Fehler hier aufgedeckt.
-
-### Messpunkte, sobald der Aufbau stimmt
+### Offene Messpunkte
 
 | Last | erwarteter THD-I | Zweck |
 |---|---|---|
 | Glühlampe (mehrere Wattagen) | ~0 % | Linearität über die Leistung |
-| Trafo-Netzteil, verschiedene Lasten | 20–77 % | Verlauf über den THD |
-| GaN-/Schaltnetzteil | ~50 % | zweite verzerrte Lastart |
-| Schaltnetzteil **mit** PFC | niedrig | trennt Verzerrung von Leistungshöhe |
+| Trafo-Netzteil, Leerlauf | ~77 % | der Extremfall — **Wiederholung nötig**, die erste Messung war mit dem untauglichen Wandler |
+| Trafo-Netzteil, belastet | 20–50 % | Verlauf über den THD |
+| größere ohmsche Last (1–2 kW) | ~0 % | Verhalten am oberen Ende des Messbereichs |
 
-Je Punkt zu erfassen: **P, I, cos φ, PF und THD-I** von der Referenz, dazu die
-mPower-Werte. Ziel ist eine Fehlerkurve über dem THD — für dieses Gerät gibt es
-bislang keine einzige veröffentlichte Genauigkeitsangabe.
+Je Punkt zu erfassen: **P, I, cos φ, S und THD-I** von der Janitza, dazu die
+mPower-Werte. Ziel ist eine Fehlerkurve über dem THD.
+
+### Plausibilitätsprüfungen nicht vergessen
+
+- **Wirkungsgrad** — ein Netzteil kann nicht mehr abgeben als es aufnimmt. Daran
+  ist der fehlerhafte Aufbau aufgefallen.
+- **`cos φ` positiv?** Negatives Vorzeichen deutet auf vertauschte S1/S2.
+- **`PF = cos φ / √(1+THD²)`** — geht das auf, ist die Referenz in sich stimmig.
 
 ## 2. Kleinere offene Fragen
 

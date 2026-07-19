@@ -605,47 +605,69 @@ Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
 schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
 verschwindet jeder Messfehler des Geräts.
 
-### Referenzmessung mit einer Janitza UMG 96RM — verworfen
+### Referenzmessung gegen eine Janitza UMG 96RM
 
-Ein Versuch, gegen ein Klasse-0,2-Gerät zu referenzieren, lieferte **nicht
-verwertbare Ergebnisse**. Der Aufbau war:
+Gemessen gegen ein Klasse-0,2-Gerät. Aufbau:
 
 ```
-Netz → Shelly → mPower Port 2 → Janitza UMG 96RM → Prüfling
+Netz → Shelly → mPower Port 2 → Janitza UMG 96RM (Direktanschluss) → Prüfling
 ```
 
-Zwei Lasten wurden gemessen, und die Abweichung des mPower gegenüber der Janitza
-**kehrte das Vorzeichen um**:
+Als Last diente ein **GaN-Netzteil** mit 20 V / 1 A am Ausgang (20 W), also ein
+modernes Schaltnetzteil mit 47 % Stromverzerrung.
 
-| Last | Janitza | mPower | Abweichung |
+| | Janitza | mPower | Abweichung |
 |---|---|---|---|
-| Trafo-Netzteil, Leerlauf | 17,85 W | 14,16 W | −20,7 % |
-| GaN-Netzteil, 20 W Ausgang | 14,50 W | 22,95 W | **+58 %** |
+| Wirkleistung | 23,00 W | 23,44 W | **+1,9 %** |
+| Scheinleistung | 31,50 VA | 32,18 VA | +2,2 % |
+| Strom | 0,1356 A | 0,1385 A | +2,2 % |
+| Leistungsfaktor (`P/S`) | 0,7302 | 0,7286 | **−0,2 %** |
 
-Ein Messfehler des mPower würde nicht das Vorzeichen wechseln. Zwei Befunde
-weisen stattdessen auf den Messaufbau:
+Der mPower liegt damit **innerhalb von 2 %** — bei knapp 50 % Stromverzerrung.
+Besonders bemerkenswert ist der Leistungsfaktor: 0,2 % Abweichung von der
+Referenz.
 
-**1. Energieerhaltung verletzt.** Das GaN-Netzteil lieferte 20 V bei 1 A, also
-20 W. Die Janitza maß 14,50 W am Eingang — das wären 138 % Wirkungsgrad. Der
-mPower-Wert von 22,95 W ergibt dagegen 87 %, was für ein GaN-Netzteil plausibel
-ist.
+#### Warum die Referenz vertrauenswürdig ist
 
-**2. `cos φ` war negativ** (−0,61). Der Betrag passte exakt zu dem, was sich aus
-den übrigen Janitza-Werten zurückrechnen ließ (0,609) — die Anzeige war also in
-sich stimmig, aber mit falschem Vorzeichen. Das deutet auf einen verpolten
-Strompfad oder eine unpassende Wandlerkonfiguration hin.
+Die Janitza-Werte sind in sich stimmig. Zwischen Verschiebungsfaktor, THD und
+echtem Leistungsfaktor gilt `PF = cos φ / √(1 + THD²)`:
 
-Zu prüfen wäre vor einem neuen Versuch:
+```
+cos φ angezeigt          0,80
+cos φ aus P und Q        0,8075
+PF echt (P/S)            0,7302
+PF aus cos φ und THD     0,7308      Abweichung 0,1 %
+```
 
-- **Stromwandler-Verhältnis** — hier flossen 0,13 bis 0,22 A. Ist ein Wandler für
-  etwa 100 A konfiguriert, liegt die Messung bei 0,1 % des Nennstroms, und die
-  Klasse-0,2-Genauigkeit gilt dort nicht mehr.
-- **Polarität** des Strompfads (k/l vertauscht?)
-- **Direktanschluss statt Wandler** bei so kleinen Strömen
+Dazu zwei Plausibilitätsprüfungen: 23,0 W Eingang bei 20 W Ausgang ergeben 87 %
+Wirkungsgrad, was für ein GaN-Netzteil passt. Und die Blindleistung ist
+**kapazitiv** — wie für den Eingangsfilter eines Schaltnetzteils zu erwarten,
+während sie beim Trafo-Netzteil induktiv war.
 
-Bis dahin bleibt die absolute Genauigkeit des mPower **unbekannt**. Was steht,
-sind die Messungen ohne Referenzgerät: die Gegenprobe an der Glühlampe und der
-Quervergleich mit dem Shelly.
+#### Ein erster Versuch war unbrauchbar — woran es lag
+
+Vor dieser Messung ergab derselbe Aufbau **+58 %** statt +1,9 %, und die Janitza
+maß 14,5 W Eingang bei 20 W Ausgang — 138 % Wirkungsgrad, physikalisch unmöglich.
+Zusätzlich war `cos φ` negativ.
+
+Ursache war der **Stromwandler**: ein 30/5-A-Typ bei tatsächlich 0,13 bis 0,22 A
+Laststrom, also **0,4 bis 0,7 % des Nennstroms**.
+
+```
+Klasse 0,2   → spezifiziert ab  5 % des Nennstroms
+Klasse 0,2S  → spezifiziert ab  1 % des Nennstroms
+```
+
+Unterhalb dieses Bereichs darf ein Wandler beliebig danebenliegen, ohne seine
+Klasse zu verletzen — vor allem im **Phasenwinkel**, und genau der entscheidet
+bei niedrigem Leistungsfaktor über die Wirkleistung.
+
+Gelöst durch **Direktanschluss ohne Wandler** (die Stromeingänge der 96RM sind
+für 5 A ausgelegt, hier flossen 0,14 A) und Wandlerverhältnis auf 5/5.
+
+**Merkregel:** Der Wirkungsgrad ist die beste Plausibilitätsprüfung. Ein Netzteil
+kann nicht mehr abgeben als es aufnimmt — daran ist der fehlerhafte Aufbau
+aufgefallen, nicht an der Messtechnik.
 
 ### Quervergleich mit einem Shelly 4PM
 
