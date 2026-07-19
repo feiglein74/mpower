@@ -77,6 +77,32 @@ Entscheidend ist, **woher Home Assistant die Daten liest**. Das legt `--source` 
 | Aktualisierung | 60 s (nach Schaltbefehl sofort) | 15 s |
 | Entitäten | 12 (Schalter, Leistung, Spannung, Energie) | 15 (zusätzlich Strom) |
 | Strom-Sensor | nein — Gerät publiziert ihn nicht | ja |
+| Auflösung Leistung | 0,1 W | 0,01 W |
+| Auflösung Energie | 1 Wh | — |
+
+### Auflösung im Geräte-Modus
+
+Die mFi-tools runden vor dem Veröffentlichen (`mqpub.sh`):
+
+```sh
+power_val=`printf "%.1f" $power_val`      # eine Nachkommastelle
+voltage_val=`printf "%.1f" $voltage_val`  # eine Nachkommastelle
+energy_val=`printf "%.0f" $energy_val`    # ganzzahlig
+```
+
+Im Vergleich zur HTTP-API zur selben Zeit:
+
+| | MQTT (Gerät) | HTTP-API |
+|---|---|---|
+| Leistung | `39.3` | `39.405690908` |
+| Spannung | `230.6` | `230.780298233` |
+
+Bei der Leistung ist das folgenlos — die vielen Nachkommastellen der HTTP-API
+sind ohnehin Scheingenauigkeit. **Bei der Energie ist die Rundung auf ganze
+Wattstunden gröber als die interne Auflösung** von 0,3125 Wh je Impuls: Ein
+5-W-Verbraucher braucht 12 Minuten, bis der Zähler um 1 weiterspringt. Für die
+stündlich aggregierende Energiestatistik in Home Assistant ist das unkritisch,
+für kurzfristige Auswertungen zu grob.
 
 **`device` ist die robustere Wahl.** Die gerätseitigen mFi-tools können alles
 Wesentliche selbst: schalten (`port<N>/relay/set` mit `1`/`0`), Zustand melden und
