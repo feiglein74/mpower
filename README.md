@@ -106,6 +106,31 @@ werden Leistung, Strom und Spannung in HA `unavailable` — die Bridge meldet be
 Beenden korrekt `offline`. Entweder als Dienst starten (`mpower-mqtt.service`) oder
 `--source device` verwenden.
 
+### Benennung der Entitäten
+
+Die Namen stammen aus zwei Quellen:
+
+```
+/etc/persistent/cfg/config_file:  port.0.label=Notebook   ← nullbasiert, port.0 = Port 1
+                                  port.1, port.2          ← kein Label gesetzt
+```
+
+Wo ein Label fehlt, setzt `mpower.py` den Rückfall `Port <N>` ein — das Gerät
+kennt diese Namen also gar nicht.
+
+**Umbenannt wird bewusst in Home Assistant, nicht am Gerät.** Zwei Gründe:
+
+- HA speichert manuelle Umbenennungen in der Entity Registry, und die haben
+  Vorrang vor dem `name` aus der Discovery-Nachricht. Die Bridge kann also
+  jederzeit erneut mit `--once` laufen, ohne die Namen zu überschreiben.
+- Die Gerätekonfiguration ist unzuverlässig: `vpower_cfg` wurde beim Neustart
+  trotz `cfgmtd` zurückgesetzt. Ob `config_file` sich anders verhält, ist offen.
+
+Wer die Labels trotzdem am Gerät setzen will, findet den Weg bei
+[TinkerTry](https://tinkertry.com/how-to-configure-ubiquiti-mpower-pro-outlet-names-without-mfi-controller)
+beschrieben — anschließend `cfgmtd -w -p /etc/` und die Bridge einmal neu laufen
+lassen.
+
 ### Entitäten
 
 Im Modus `bridge` entstehen 15 Entitäten: pro Port ein Schalter plus Leistungs-,
