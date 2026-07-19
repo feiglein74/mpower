@@ -80,62 +80,9 @@ Entscheidend ist, **woher Home Assistant die Daten liest**. Das legt `--source` 
 | Auflösung Leistung | 0,1 W | 0,01 W |
 | Auflösung Energie | 1 Wh | — |
 
-### Auflösung im Geräte-Modus
-
-Die mFi-tools runden vor dem Veröffentlichen (`mqpub.sh`):
-
-```sh
-power_val=`printf "%.1f" $power_val`      # eine Nachkommastelle
-voltage_val=`printf "%.1f" $voltage_val`  # eine Nachkommastelle
-energy_val=`printf "%.0f" $energy_val`    # ganzzahlig
-```
-
-Im Vergleich zur HTTP-API zur selben Zeit:
-
-| | MQTT (Gerät) | HTTP-API |
-|---|---|---|
-| Leistung | `39.3` | `39.405690908` |
-| Spannung | `230.6` | `230.780298233` |
-
-### Wo unterwegs Genauigkeit verlorengeht
-
-```
-Messchip PL7223
-  16-Bit-ADC, Mittelung über ~1 Sekunde
-        │
-        ▼
-/proc/power/active_pwr3 = 39.405690908
-  volle Rechengenauigkeit — aber Scheingenauigkeit:
-  die hinteren Stellen bedeuten physikalisch nichts
-        │
-        ├──▶ HTTP-API ──▶ mqtt_bridge.py ──▶ MQTT: 39.41   (2 Nachkommastellen)
-        │
-        └──▶ mqpub.sh, printf "%.1f" ─────▶ MQTT: 39.3     (1 Nachkommastelle)
-```
-
-Gerundet wird also erst ganz am Ende, im Shell-Skript auf dem Gerät. Das ist
-kein Defekt, sondern eine sinnvolle Entscheidung: Die Messung an der Glühlampe
-ergab eine reale Streuung von σ = 0,066 W. Alles jenseits der ersten
-Nachkommastelle ist Rauschen und kostet nur Platz im Broker.
-
-**Nur bei der Energie zählt es wirklich.** Dort ist die Rundung gröber als das,
-was der Chip kann:
-
-```
-intern:  cf_count × 0,3125 Wh   →  0,3125 Wh je Schritt
-MQTT:    printf "%.0f"          →  1 Wh je Schritt
-```
-
-Bei einem 40-W-Verbraucher fällt das nicht auf — der erzeugt gut 40 Wh pro
-Stunde. Bei 5 W Standby dauert es 12 Minuten, bis sich der Wert überhaupt
-bewegt. In der stündlich aggregierenden Energiestatistik von Home Assistant
-verschwindet das wieder; nur für Auswertungen auf Minutenebene wäre es zu grob.
-
-Wer es feiner braucht: `/etc/persistent/mqtt/client/mqpub.sh` ist ein normales
-Shell-Skript, `%.1f` statt `%.0f` in der `energy_val`-Zeile wäre die ganze
-Änderung — plus `cfgmtd -w -p /etc/`. Ob das einen Neustart übersteht, wäre
-allerdings erst zu prüfen: `vpower_cfg` wird von der Firmware ebenfalls
-zurückgesetzt (siehe oben).
+Die gröbere Auflösung im Geräte-Modus stammt daher, dass die mFi-tools vor dem
+Veröffentlichen runden. Warum das bei der Leistung folgenlos ist und nur bei der
+Energie zählt, steht unter [Wie genau ist die Messung?](#wie-genau-ist-die-messung).
 
 **`device` ist die robustere Wahl.** Die gerätseitigen mFi-tools können alles
 Wesentliche selbst: schalten (`port<N>/relay/set` mit `1`/`0`), Zustand melden und
@@ -579,10 +526,6 @@ Praktische Folgen:
 - **Dauerlasten und die Energiezählung sind davon nicht betroffen.** `cf_count`
   akkumuliert Impulse, statt Momentanwerte zu mitteln.
 
-**Die Nachkommastellen sind Scheingenauigkeit.** `9.542111933 W` suggeriert
-Nanowatt-Auflösung; die reale Quantisierung der Energiezählung beträgt
-0,3125 Wh je Impuls.
-
 ### Gegenprobe mit bekannter Last
 
 Gemessen an einer **40-W-Glühlampe** (ohmsch, damit fällt die PF-Messung als
@@ -618,6 +561,64 @@ belastbare Aussage bräuchte es ein kalibriertes Referenzmessgerät.
 Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
 schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
 verschwindet jeder Messfehler des Geräts.
+
+### Vom Messchip bis zum Wert in Home Assistant
+
+Wo unterwegs Stellen verlorengehen:
+
+```
+Messchip PL7223
+  16-Bit-ADC, Mittelung über ~1 Sekunde
+        │
+        ▼
+/proc/power/active_pwr3 = 39.405690908
+  volle Rechengenauigkeit — aber Scheingenauigkeit:
+  die hinteren Stellen bedeuten physikalisch nichts
+        │
+        ├──▶ HTTP-API ──▶ mqtt_bridge.py ──▶ MQTT: 39.41   (2 Nachkommastellen)
+        │
+        └──▶ mqpub.sh, printf "%.1f" ─────▶ MQTT: 39.3     (1 Nachkommastelle)
+```
+
+Gerundet wird erst ganz am Ende. Im Geräte-Modus erledigt das `mqpub.sh`:
+
+```sh
+power_val=`printf "%.1f" $power_val`      # eine Nachkommastelle
+voltage_val=`printf "%.1f" $voltage_val`  # eine Nachkommastelle
+energy_val=`printf "%.0f" $energy_val`    # ganzzahlig
+```
+
+Zur selben Zeit gemessen:
+
+| | MQTT (Gerät) | HTTP-API |
+|---|---|---|
+| Leistung | `39.3` | `39.405690908` |
+| Spannung | `230.6` | `230.780298233` |
+
+**Bei der Leistung ist das folgenlos.** Die reale Streuung liegt bei σ = 0,066 W
+— alles jenseits der ersten Nachkommastelle ist Rauschen und kostet nur Platz im
+Broker. Die vielen Stellen der HTTP-API sind ohnehin Scheingenauigkeit:
+`9.542111933 W` suggeriert Nanowatt-Auflösung, wo der Chip über eine ganze
+Sekunde mittelt.
+
+**Nur bei der Energie zählt die Rundung wirklich**, denn dort ist sie gröber als
+das, was der Chip kann:
+
+```
+intern:  cf_count × 0,3125 Wh   →  0,3125 Wh je Schritt
+MQTT:    printf "%.0f"          →  1 Wh je Schritt
+```
+
+Bei einem 40-W-Verbraucher fällt das nicht auf — der erzeugt gut 40 Wh pro
+Stunde. Bei 5 W Standby dauert es 12 Minuten, bis sich der Wert überhaupt
+bewegt. In der stündlich aggregierenden Energiestatistik von Home Assistant
+verschwindet das wieder; nur für Auswertungen auf Minutenebene wäre es zu grob.
+
+Wer es feiner braucht: `/etc/persistent/mqtt/client/mqpub.sh` ist ein normales
+Shell-Skript, `%.1f` statt `%.0f` in der `energy_val`-Zeile wäre die ganze
+Änderung — plus `cfgmtd -w -p /etc/`. Ob das einen Neustart übersteht, wäre
+allerdings erst zu prüfen: `vpower_cfg` wird von der Firmware ebenfalls
+zurückgesetzt.
 
 ## Zwei MQTT-Wege
 
