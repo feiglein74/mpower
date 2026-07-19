@@ -413,6 +413,76 @@ sudo ss -lunp | grep :123    # muss 0.0.0.0:123 zeigen, nicht 127.0.0.1:123
 Die letzte Zeile ist der eigentliche Beweis: Bindet chrony nur an Localhost,
 fehlt ein `allow`.
 
+## Wie genau ist die Messung?
+
+**Kurz: unbekannt.** Weder Prolific noch Ubiquiti veröffentlichen eine
+Genauigkeitsangabe.
+
+### Der Messchip
+
+Prolific **PL7223**, ein „2ch Power/Energy Metering AFE Controller". Auf dem
+Gerät als Kernelmodul `powerdev` angebunden, Versionen über
+`/proc/power/meter_ic_ver<N>` auslesbar:
+
+```
+CFG(1..3) version = 0x0006c300
+DSP(1) version = 0x12110503     DSP(2) = ...502     DSP(3) = ...501
+```
+
+Aus der [Produktbroschüre](https://www.alldatasheet.com/datasheet-pdf/pdf/1164153/PROLIFIC/PL7223.html)
+(V1.0, 06/2015):
+
+| | |
+|---|---|
+| ADC | 2 Kanäle, vollständig differentiell, **16 Bit** |
+| PGA | 1× bis 32×, programmierbar |
+| DSP | programmierbar, eigener Programm- und Datenbereich |
+| MTP | speichert DSP-Code **und Kalibrierdaten** |
+| Schnittstelle | SPI |
+
+„2ch" meint zwei ADC-Kanäle — Spannung und Strom, also **eine Netzleitung pro
+Chip**. Die drei unterschiedlichen DSP-Versionen belegen entsprechend drei
+Chips, einen je Steckdose.
+
+### Was nicht dokumentiert ist
+
+Das vollständige Datenblatt steht unter NDA. Selbst der von Electric Imp
+veröffentlichte [Treiber](https://github.com/electricimp/PL7223) sagt dazu nur:
+*„based on a datasheet under NDA … we cannot open source the driver class"*.
+Auch das [mFi-Datenblatt](https://dl.ubnt.com/datasheets/mfi/mFi_DS.pdf) nennt
+lediglich „Energy Monitoring" als Funktion, ohne Toleranzangabe.
+
+Die absolute Genauigkeit hängt an drei unbekannten Größen: den Kalibrierdaten im
+MTP, der Toleranz des Strom-Shunts und der des Spannungsteilers.
+
+### Was am Gerät messbar ist
+
+**`power` ist kein eigener Messwert.** Über 30 Messungen ergab `U × I × PF`
+exakt den gemeldeten Wert — Abweichung 0,000 % bei σ = 0,000 %. Die Firmware
+rechnet ihn aus den anderen drei Größen. Ein Vergleich der vier Felder
+untereinander kann deshalb prinzipiell nichts aufdecken.
+
+**Die Spannungsmessung läuft ruhig:** σ = 0,31 V auf 229 V, also 0,14 %.
+
+**Es gibt eine Totzone bei kleinen Lasten.** Unbelegte Ports melden über Stunden
+hinweg *exakt* `0.0 W` und `0.000 A` — nie einen Rauschwert. Ein 16-Bit-ADC mit
+bis zu 32-facher Verstärkung würde dort etwas sehen; die Null ist also eine
+Schwelle im DSP-Code, keine Grenze der Hardware. Kleine Standby-Verbraucher
+werden damit vermutlich als 0 gemeldet. Wo die Schwelle liegt, wurde nicht
+ermittelt.
+
+**Die Nachkommastellen sind Scheingenauigkeit.** `9.542111933 W` suggeriert
+Nanowatt-Auflösung; die reale Quantisierung der Energiezählung beträgt
+0,3125 Wh je Impuls.
+
+### Wie man es überprüfen würde
+
+Mit einer **bekannten ohmschen Last** — Glühlampe oder Heizlüfter mit
+aufgedruckter Wattzahl. Ohmsch heißt Leistungsfaktor ≈ 1, damit fällt die
+PF-Messung als Fehlerquelle weg. Ein Schaltnetzteil (Notebook, PF ≈ 0,4) taugt
+dafür nicht: Dessen Eigenschwankung lag im Test bei σ = 1,63 W auf 9,22 W, also
+18 % — darin verschwindet jeder Messfehler des Geräts.
+
 ## Zwei MQTT-Wege
 
 Nach dem Umbiegen laufen **zwei unabhängige** Wege auf denselben Broker. Sie

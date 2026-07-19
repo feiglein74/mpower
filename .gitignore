@@ -17,3 +17,7 @@ backup-geraet/cfg/mgmt
 # Sicherung, aber personenbezogen -- daraus lassen sich Anwesenheitszeiten und
 # Tagesablaeufe ablesen. Gehoert nicht in ein oeffentliches Repository.
 backup-geraet/data/
+
+# Hersteller-Datenblatt, nicht unser Werk -- Urheberrecht liegt bei Prolific.
+# Bezugsquelle steht im README.
+PL7223.PDF
