@@ -5,35 +5,38 @@ Projekt funktioniert — es sind offene Fragen, keine Fehler.
 
 ---
 
-## 1. Fehlerkurve über Leistung und THD
+## 1. Referenzmessung wiederholen — Aufbau prüfen
 
-Der erste Messpunkt gegen die Janitza UMG 96RM steht (siehe README): Bei einem
-Trafo-Netzteil im Leerlauf mit 77,4 % Stromverzerrung liest der mPower **20,7 %
-zu niedrig**, bei einer ohmschen Glühlampe dagegen nur 1,5 %. Die Genauigkeit
-hängt also stark an der Lastart.
+Ein erster Versuch mit einer **Janitza UMG 96RM** lieferte widersprüchliche
+Ergebnisse und wurde verworfen (Begründung im README). Die Abweichung des mPower
+kehrte zwischen zwei Lasten das Vorzeichen um, und beim GaN-Netzteil verletzte
+die Referenzmessung die Energieerhaltung: 14,5 W Eingang bei 20 W Ausgang wären
+138 % Wirkungsgrad.
 
-Was fehlt, ist die Kurve dazwischen. Ein Messpunkt bei einer Lastart erlaubt
-keine Aussage darüber, ab welchem Verzerrungsgrad es kritisch wird.
+### Vor einem neuen Versuch klären
 
-### Sinnvolle Messpunkte
+- **Stromwandler-Verhältnis** — gemessen wurden 0,13 bis 0,22 A. Ist ein Wandler
+  für etwa 100 A konfiguriert, liegt das bei 0,1 % des Nennstroms; die
+  Klasse-0,2-Genauigkeit gilt dort nicht.
+- **Polarität des Strompfads** — `cos φ` war negativ (−0,61) bei betragsmäßig
+  stimmigem Wert. Deutet auf vertauschte k/l-Anschlüsse.
+- **Direktanschluss statt Wandler** wäre bei diesen Strömen vermutlich nötig.
 
-| Last | erwarteter THD | Zweck |
+Als Plausibilitätsprüfung eignet sich der **Wirkungsgrad**: Ein Netzteil kann
+nicht mehr abgeben als es aufnimmt. Das hat den Fehler hier aufgedeckt.
+
+### Messpunkte, sobald der Aufbau stimmt
+
+| Last | erwarteter THD-I | Zweck |
 |---|---|---|
 | Glühlampe (mehrere Wattagen) | ~0 % | Linearität über die Leistung |
 | Trafo-Netzteil, verschiedene Lasten | 20–77 % | Verlauf über den THD |
-| Schaltnetzteil ohne PFC | hoch | zweite verzerrte Lastart |
+| GaN-/Schaltnetzteil | ~50 % | zweite verzerrte Lastart |
 | Schaltnetzteil **mit** PFC | niedrig | trennt Verzerrung von Leistungshöhe |
 
-Je Punkt zu erfassen: **P, I, cos φ, PF und THD-I** von der Janitza, dazu die
-mPower-Werte. Daraus ließe sich eine Fehlerkurve über dem THD zeichnen — und die
-wäre für dieses Gerät wirklich neu.
-
-### Offene Frage aus der ersten Messung
-
-Der mPower liest den **Strom zu hoch** (+14,9 %) und die **Leistung zu niedrig**
-(−20,7 %). Warum in beide Richtungen, ist unklar. Eine Erklärung bräuchte
-Kenntnis darüber, bis zur wievielten Harmonischen der PL7223 rechnet — steht im
-Datenblatt unter NDA.
+Je Punkt zu erfassen: **P, I, cos φ, PF und THD-I** von der Referenz, dazu die
+mPower-Werte. Ziel ist eine Fehlerkurve über dem THD — für dieses Gerät gibt es
+bislang keine einzige veröffentlichte Genauigkeitsangabe.
 
 ## 2. Kleinere offene Fragen
 

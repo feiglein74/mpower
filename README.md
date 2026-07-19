@@ -605,65 +605,47 @@ Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
 schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
 verschwindet jeder Messfehler des Geräts.
 
-### Referenzmessung gegen eine Janitza UMG 96RM
+### Referenzmessung mit einer Janitza UMG 96RM — verworfen
 
-Gemessen gegen ein **Klasse-0,2-Gerät** — soweit bekannt die erste
-veröffentlichte Genauigkeitsangabe für den mFi mPower überhaupt. Aufbau:
+Ein Versuch, gegen ein Klasse-0,2-Gerät zu referenzieren, lieferte **nicht
+verwertbare Ergebnisse**. Der Aufbau war:
 
 ```
-Netz → Shelly → mPower Port 2 → Janitza UMG 96RM → Labornetzteil
+Netz → Shelly → mPower Port 2 → Janitza UMG 96RM → Prüfling
 ```
 
-Als Last diente ein **linear geregeltes Trafo-Labornetzteil im Leerlauf** — mit
-77,4 % Stromverzerrung ungefähr der ungünstigste Fall, den man einem Messgerät
-vorsetzen kann.
+Zwei Lasten wurden gemessen, und die Abweichung des mPower gegenüber der Janitza
+**kehrte das Vorzeichen um**:
 
-| | Janitza (Referenz) | mPower | Abweichung |
+| Last | Janitza | mPower | Abweichung |
 |---|---|---|---|
-| Wirkleistung | 17,85 W | 14,16 W | **−20,7 %** |
-| Scheinleistung | 43,0 VA | 49,4 VA | +14,9 % |
-| Strom | 0,1876 A | 0,2155 A | +14,9 % |
-| Leistungsfaktor (`P/S`) | 0,415 | 0,287 | −30,9 % |
+| Trafo-Netzteil, Leerlauf | 17,85 W | 14,16 W | −20,7 % |
+| GaN-Netzteil, 20 W Ausgang | 14,50 W | 22,95 W | **+58 %** |
 
-Der Shelly 4PM lag bei derselben Last bei 15,70 W, also **−12,0 %**.
+Ein Messfehler des mPower würde nicht das Vorzeichen wechseln. Zwei Befunde
+weisen stattdessen auf den Messaufbau:
 
-#### Warum die Referenz vertrauenswürdig ist
+**1. Energieerhaltung verletzt.** Das GaN-Netzteil lieferte 20 V bei 1 A, also
+20 W. Die Janitza maß 14,50 W am Eingang — das wären 138 % Wirkungsgrad. Der
+mPower-Wert von 22,95 W ergibt dagegen 87 %, was für ein GaN-Netzteil plausibel
+ist.
 
-Die Janitza-Werte sind in sich stimmig. Zwischen Verschiebungsfaktor, THD und
-echtem Leistungsfaktor gilt `PF = cos φ / √(1 + THD²)`:
+**2. `cos φ` war negativ** (−0,61). Der Betrag passte exakt zu dem, was sich aus
+den übrigen Janitza-Werten zurückrechnen ließ (0,609) — die Anzeige war also in
+sich stimmig, aber mit falschem Vorzeichen. Das deutet auf einen verpolten
+Strompfad oder eine unpassende Wandlerkonfiguration hin.
 
-```
-Theorie:   0,52 / √(1 + 0,774²) = 0,52 / 1,2645 = 0,4112
-Gemessen:  P/S = 17,85 / 43,0                   = 0,4151
-                                                  Abweichung 0,9 %
-```
+Zu prüfen wäre vor einem neuen Versuch:
 
-Zusätzlich weist das Leistungsdreieck eine **Verzerrungsblindleistung von
-26,1 var** aus — 61 % der Scheinleistung. Von 0,1876 A Gesamtstrom sind 0,1148 A
-reine Oberwellen.
+- **Stromwandler-Verhältnis** — hier flossen 0,13 bis 0,22 A. Ist ein Wandler für
+  etwa 100 A konfiguriert, liegt die Messung bei 0,1 % des Nennstroms, und die
+  Klasse-0,2-Genauigkeit gilt dort nicht mehr.
+- **Polarität** des Strompfads (k/l vertauscht?)
+- **Direktanschluss statt Wandler** bei so kleinen Strömen
 
-#### Die Genauigkeit hängt an der Lastart
-
-| Last | Strom-THD | Abweichung mPower |
-|---|---|---|
-| Glühlampe 40 W (ohmsch) | ~0 % | **−1,5 %** |
-| Trafo-Netzteil, Leerlauf | **77,4 %** | **−20,7 %** |
-
-Das ist die eigentliche Antwort auf die Genauigkeitsfrage: **Bei sauberen Lasten
-misst das Gerät gut, bei stark verzerrten liegt es um ein Fünftel daneben.** Für
-Glühlampen, Heizungen und ähnliches sind die Werte brauchbar; bei Trafos,
-Motoren im Leerlauf oder ungefilterten Schaltnetzteilen sollte man ihnen nicht
-trauen.
-
-Bemerkenswert ist die Richtung: Der mPower liest den **Strom zu hoch** (+14,9 %)
-und die **Leistung zu niedrig** (−20,7 %). Beides zusammen erklärt seinen viel zu
-niedrigen Leistungsfaktor. Eine Erklärung dafür haben wir nicht — dazu müsste man
-wissen, bis zur wievielten Harmonischen der PL7223 rechnet, und das steht im
-Datenblatt unter NDA.
-
-**Einschränkung:** Es ist *ein* Messpunkt bei *einer* Lastart. Für eine
-Fehlerkurve über Leistung und THD bräuchte es mehr Punkte — siehe
-[TODO.md](TODO.md).
+Bis dahin bleibt die absolute Genauigkeit des mPower **unbekannt**. Was steht,
+sind die Messungen ohne Referenzgerät: die Gegenprobe an der Glühlampe und der
+Quervergleich mit dem Shelly.
 
 ### Quervergleich mit einem Shelly 4PM
 
