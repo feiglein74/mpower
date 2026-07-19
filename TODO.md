@@ -5,47 +5,35 @@ Projekt funktioniert — es sind offene Fragen, keine Fehler.
 
 ---
 
-## 1. Referenzmessung mit der Janitza
+## 1. Fehlerkurve über Leistung und THD
 
-**Das lohnendste Vorhaben.** Für den mFi mPower existiert *keine einzige*
-veröffentlichte Genauigkeitsangabe: Das PL7223-Datenblatt steht unter NDA, die
-Produktbroschüre nennt keine Toleranz, und Ubiquitis mFi-Datenblatt führt
-„Energy Monitoring" nur als Feature. Eine gegen ein Klasse-0,2-Gerät
-referenzierte Messung wäre die erste belastbare Zahl zu diesem Gerät überhaupt.
+Der erste Messpunkt gegen die Janitza UMG 96RM steht (siehe README): Bei einem
+Trafo-Netzteil im Leerlauf mit 77,4 % Stromverzerrung liest der mPower **20,7 %
+zu niedrig**, bei einer ohmschen Glühlampe dagegen nur 1,5 %. Die Genauigkeit
+hängt also stark an der Lastart.
 
-### Was bisher offen ist
+Was fehlt, ist die Kurve dazwischen. Ein Messpunkt bei einer Lastart erlaubt
+keine Aussage darüber, ab welchem Verzerrungsgrad es kritisch wird.
 
-Der Quervergleich mit einem Shelly 4PM ergab (siehe README):
+### Sinnvolle Messpunkte
 
-| Last | mPower | Shelly | Differenz |
-|---|---|---|---|
-| Trafo-Labornetzteil, Leerlauf | 14,30 W | 15,70 W | −8,9 % |
-| Trafo-Labornetzteil, 1 A / 12 V | 33,28 W | 34,90 W | −4,6 % |
-| Glühlampe 40 W (ohmsch) | 39,62 W | — | −1,5 % gegen Nennwert |
+| Last | erwarteter THD | Zweck |
+|---|---|---|
+| Glühlampe (mehrere Wattagen) | ~0 % | Linearität über die Leistung |
+| Trafo-Netzteil, verschiedene Lasten | 20–77 % | Verlauf über den THD |
+| Schaltnetzteil ohne PFC | hoch | zweite verzerrte Lastart |
+| Schaltnetzteil **mit** PFC | niedrig | trennt Verzerrung von Leistungshöhe |
 
-Bei ohmscher Last stimmen beide fast überein, bei verzerrten Lasten läuft es
-auseinander. Vermutung: Die Messchips rechnen **Oberwellen unterschiedlich in
-die Wirkleistung** ein. Ohne Referenzgerät ist nicht entscheidbar, welches näher
-an der Wahrheit liegt.
+Je Punkt zu erfassen: **P, I, cos φ, PF und THD-I** von der Janitza, dazu die
+mPower-Werte. Daraus ließe sich eine Fehlerkurve über dem THD zeichnen — und die
+wäre für dieses Gerät wirklich neu.
 
-### Messplan
+### Offene Frage aus der ersten Messung
 
-Janitza in Reihe, mPower und Shelly parallel dazu ablesen.
-
-| | |
-|---|---|
-| **Lasten** | Glühlampe (ohmsch, PF ≈ 1) · Trafo-Netzteil leer · Trafo-Netzteil belastet · ein Schaltnetzteil (stark verzerrt) |
-| **Größen** | Wirkleistung · Effektivstrom · **THD des Stroms** · echter PF (`P/S`) **und** cos φ getrennt |
-
-Der THD ist der eigentliche Erkenntnisgewinn: Damit lässt sich vorhersagen, wie
-weit zwei Messgeräte auseinanderliegen *müssen*, je nachdem bis zur wievielten
-Harmonischen sie rechnen. Das beantwortet das „warum", nicht nur das „wer".
-
-Wichtig: `cos φ` und `P/S` **getrennt** erfassen. Der mPower meldet den echten
-Leistungsfaktor, der Shelly offenbar den Verschiebungsfaktor — das hat beim
-letzten Mal für scheinbare Widersprüche gesorgt (siehe README).
-
----
+Der mPower liest den **Strom zu hoch** (+14,9 %) und die **Leistung zu niedrig**
+(−20,7 %). Warum in beide Richtungen, ist unklar. Eine Erklärung bräuchte
+Kenntnis darüber, bis zur wievielten Harmonischen der PL7223 rechnet — steht im
+Datenblatt unter NDA.
 
 ## 2. Kleinere offene Fragen
 

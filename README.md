@@ -605,6 +605,66 @@ Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
 schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
 verschwindet jeder Messfehler des Geräts.
 
+### Referenzmessung gegen eine Janitza UMG 96RM
+
+Gemessen gegen ein **Klasse-0,2-Gerät** — soweit bekannt die erste
+veröffentlichte Genauigkeitsangabe für den mFi mPower überhaupt. Aufbau:
+
+```
+Netz → Shelly → mPower Port 2 → Janitza UMG 96RM → Labornetzteil
+```
+
+Als Last diente ein **linear geregeltes Trafo-Labornetzteil im Leerlauf** — mit
+77,4 % Stromverzerrung ungefähr der ungünstigste Fall, den man einem Messgerät
+vorsetzen kann.
+
+| | Janitza (Referenz) | mPower | Abweichung |
+|---|---|---|---|
+| Wirkleistung | 17,85 W | 14,16 W | **−20,7 %** |
+| Scheinleistung | 43,0 VA | 49,4 VA | +14,9 % |
+| Strom | 0,1876 A | 0,2155 A | +14,9 % |
+| Leistungsfaktor (`P/S`) | 0,415 | 0,287 | −30,9 % |
+
+Der Shelly 4PM lag bei derselben Last bei 15,70 W, also **−12,0 %**.
+
+#### Warum die Referenz vertrauenswürdig ist
+
+Die Janitza-Werte sind in sich stimmig. Zwischen Verschiebungsfaktor, THD und
+echtem Leistungsfaktor gilt `PF = cos φ / √(1 + THD²)`:
+
+```
+Theorie:   0,52 / √(1 + 0,774²) = 0,52 / 1,2645 = 0,4112
+Gemessen:  P/S = 17,85 / 43,0                   = 0,4151
+                                                  Abweichung 0,9 %
+```
+
+Zusätzlich weist das Leistungsdreieck eine **Verzerrungsblindleistung von
+26,1 var** aus — 61 % der Scheinleistung. Von 0,1876 A Gesamtstrom sind 0,1148 A
+reine Oberwellen.
+
+#### Die Genauigkeit hängt an der Lastart
+
+| Last | Strom-THD | Abweichung mPower |
+|---|---|---|
+| Glühlampe 40 W (ohmsch) | ~0 % | **−1,5 %** |
+| Trafo-Netzteil, Leerlauf | **77,4 %** | **−20,7 %** |
+
+Das ist die eigentliche Antwort auf die Genauigkeitsfrage: **Bei sauberen Lasten
+misst das Gerät gut, bei stark verzerrten liegt es um ein Fünftel daneben.** Für
+Glühlampen, Heizungen und ähnliches sind die Werte brauchbar; bei Trafos,
+Motoren im Leerlauf oder ungefilterten Schaltnetzteilen sollte man ihnen nicht
+trauen.
+
+Bemerkenswert ist die Richtung: Der mPower liest den **Strom zu hoch** (+14,9 %)
+und die **Leistung zu niedrig** (−20,7 %). Beides zusammen erklärt seinen viel zu
+niedrigen Leistungsfaktor. Eine Erklärung dafür haben wir nicht — dazu müsste man
+wissen, bis zur wievielten Harmonischen der PL7223 rechnet, und das steht im
+Datenblatt unter NDA.
+
+**Einschränkung:** Es ist *ein* Messpunkt bei *einer* Lastart. Für eine
+Fehlerkurve über Leistung und THD bräuchte es mehr Punkte — siehe
+[TODO.md](TODO.md).
+
 ### Quervergleich mit einem Shelly 4PM
 
 Die Leiste hing hinter einem Shelly 4PM, sodass beide Geräte dieselben Lasten
