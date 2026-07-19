@@ -12,3 +12,8 @@ config.ini
 # lokal noetig, gehoert aber nicht in ein veroeffentlichtes Repository.
 # Die bereinigte Struktur steht in cfg/mgmt.beispiel.
 backup-geraet/cfg/mgmt
+
+# Verbrauchshistorie des Geraets (tageweise, ab August 2020). Lokal Teil der
+# Sicherung, aber personenbezogen -- daraus lassen sich Anwesenheitszeiten und
+# Tagesablaeufe ablesen. Gehoert nicht in ein oeffentliches Repository.
+backup-geraet/data/
