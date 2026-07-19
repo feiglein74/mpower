@@ -616,6 +616,7 @@ Netz → Shelly → mPower Port 2 → Janitza UMG 96RM (Direktanschluss) → Pr�
 
 | Last | THD-I | PF | mPower vs. Janitza |
 |---|---|---|---|
+| Glühlampe 40 W | 8,8 % | 0,999 | **+0,08 %** (über die Bilanz) |
 | GaN-Netzteil, 20 W Ausgang | 47,0 % | 0,73 | **+1,9 %** |
 | Trafo-Netzteil, Leerlauf | 67,8 % | 0,27 | **+0,6 %** |
 
@@ -681,6 +682,32 @@ kann nicht mehr abgeben als es aufnimmt — daran ist der fehlerhafte Aufbau
 aufgefallen, nicht an der Messtechnik. Aus den Fehlmessungen wurde zwischenzeitlich
 geschlossen, die Genauigkeit hänge stark an der Lastart. Das war falsch und ist
 mit den korrigierten Messungen widerlegt.
+
+#### Ohmsche Last: Bilanz stimmt auf 0,08 %
+
+Mit der Janitza **vor** der Leiste und einer 40-W-Glühlampe an Port 3:
+
+```
+mPower Port 3               40,0442 W   (σ = 0,038 W, PF 0,9994)
++ Eigenverbrauch der Leiste    2,09 W
+= erwartet                    42,13 W
+Janitza misst                 42,10 W     Abweichung 0,034 W
+```
+
+Dieser Messpunkt isoliert den **Betragsfehler**: Bei einem Leistungsfaktor von
+0,9994 fallen Phasenlage und Oberwellen als Fehlerquellen praktisch weg. Was
+bleibt, ist die reine Strommessung — und die stimmt.
+
+Nebenbefund: Die 8,77 % Stromverzerrung stammen nicht von der Glühlampe, sondern
+von der Leiste selbst.
+
+```
+Glühlampe   172,5 mA   praktisch oberwellenfrei
+Leiste       18,5 mA   davon 16,1 mA Oberwellen (THD 176 %)
+Gesamt      180   mA   →  16,1/180 = 8,9 %     gemessen 8,77 %
+```
+
+Damit ist der Eigenverbrauch der Leiste ein drittes Mal unabhängig bestätigt.
 
 #### Quervalidierung über die Leistungsbilanz
 

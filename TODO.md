@@ -5,33 +5,22 @@ Projekt funktioniert — es sind offene Fragen, keine Fehler.
 
 ---
 
-## 1. Fehlerkurve über mehrere Lastarten
+## 1. Fehlerkurve verfeinern (optional)
 
-Der erste belastbare Messpunkt gegen die Janitza UMG 96RM steht (siehe README):
-Bei einem GaN-Netzteil mit 47 % Stromverzerrung liegt der mPower **innerhalb von
-2 %**. Was fehlt, ist der Verlauf über verschiedene Lastarten und Verzerrungsgrade.
+Vier Referenzpunkte gegen die Janitza UMG 96RM stehen (siehe README) — von 8,8 %
+bis 176 % Stromverzerrung, von 2 W bis 42 W, induktiv wie kapazitiv. Der mPower
+bleibt überall innerhalb von 2 %.
 
-**Wichtig:** Direktanschluss verwenden, keinen Wandler. Der vorhandene 30/5-A-Typ
-ist für diese Ströme unbrauchbar — Details im README.
+Damit ist die Ausgangsfrage beantwortet. Was noch fehlen würde, wäre reine Kür:
 
-### Offene Messpunkte
+- **Oberes Ende des Messbereichs** — bisher nur bis 42 W getestet, das Gerät ist
+  für rund 2300 W ausgelegt. Ein Heizlüfter oder Wasserkocher würde zeigen, ob es
+  auch dort linear bleibt.
+- **Unteres Ende** — ab welcher Leistung wird die Anzeige unbrauchbar? Kleinster
+  bisher belegter Wert: 2,9 W.
 
-| Last | erwarteter THD-I | Zweck |
-|---|---|---|
-| Glühlampe (mehrere Wattagen) | ~0 % | Linearität über die Leistung |
-| Trafo-Netzteil, Leerlauf | ~77 % | der Extremfall — **Wiederholung nötig**, die erste Messung war mit dem untauglichen Wandler |
-| Trafo-Netzteil, belastet | 20–50 % | Verlauf über den THD |
-| größere ohmsche Last (1–2 kW) | ~0 % | Verhalten am oberen Ende des Messbereichs |
-
-Je Punkt zu erfassen: **P, I, cos φ, S und THD-I** von der Janitza, dazu die
-mPower-Werte. Ziel ist eine Fehlerkurve über dem THD.
-
-### Plausibilitätsprüfungen nicht vergessen
-
-- **Wirkungsgrad** — ein Netzteil kann nicht mehr abgeben als es aufnimmt. Daran
-  ist der fehlerhafte Aufbau aufgefallen.
-- **`cos φ` positiv?** Negatives Vorzeichen deutet auf vertauschte S1/S2.
-- **`PF = cos φ / √(1+THD²)`** — geht das auf, ist die Referenz in sich stimmig.
+**Wichtig bei jeder Wiederholung:** Direktanschluss verwenden, keinen
+Stromwandler. Warum, steht im README.
 
 ## 2. Kleinere offene Fragen
 
