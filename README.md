@@ -284,12 +284,30 @@ echo 0 > /proc/led/status
 Die mFi-tools bringen dafür `client/led.cfg` mit (`afterboot`, `relay_on`,
 `relay_off`) — die LED kann also dem Relaiszustand folgen.
 
-### Nicht verifiziert
+### Neustart-Test: bestanden
 
-Der Flash-Commit meldete Erfolg (Exit 0, Active- und Backup-Slot geschrieben), aber
-**ein Neustart zur Gegenprobe wurde bewusst nicht gemacht**: An Port 1 hing ein
-Notebook, und ob ein Reboot die Relais in einen definierten Zustand zurücksetzt,
-wurde nicht getestet. Wer das prüfen will, sollte vorher alle Verbraucher abziehen.
+Durch Aus- und Wiedereinstecken verifiziert — **alle Änderungen haben überlebt**:
+
+| | Ergebnis |
+|---|---|
+| `cfg/mgmt` | Controller-Adressen weiterhin entfernt ✅ |
+| `mqtt.cfg` | Broker und Zugangsdaten erhalten ✅ |
+| LED | `freq=0`, kein Blinken ✅ |
+| MQTT-Client | per `rc.poststart` selbstständig gestartet ✅ |
+| Relais | alle drei kamen wieder **eingeschaltet** hoch |
+
+Damit ist `cfgmtd -w -p /etc/` als Persistenzweg bestätigt.
+
+**Wichtig für die Erwartungshaltung:** Der MQTT-Client braucht nach dem
+Einschalten **rund vier Minuten**, bis er publiziert — trotz `sleep 10` in
+`rc.poststart`. Der Rest der Zeit geht für den Bootvorgang und die
+WLAN-Anmeldung drauf. Wer direkt nach dem Einstecken nachsieht, findet in Home
+Assistant `$online = false` und eingefrorene Werte aus der letzten Sitzung
+(retained). Das ist kein Fehler, sondern nur Geduldssache.
+
+Ebenfalls beachten: Die Relais gehen nach Stromausfall **auf EIN**. Für
+angeschlossene Geräte, die nicht selbsttätig wieder anlaufen sollen, ist das
+relevant.
 
 ## Zwei MQTT-Wege
 
