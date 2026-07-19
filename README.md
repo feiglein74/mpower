@@ -578,7 +578,7 @@ Der mPower liest bei verzerrten Lasten durchweg niedriger, bei ohmscher Last
 kaum. Das deutet darauf hin, dass beide Geräte **Oberwellen unterschiedlich in
 die Wirkleistung einrechnen** — ein bekannter Unterschied zwischen Messchips.
 Ohne kalibriertes Referenzgerät ist nicht auflösbar, welches näher an der
-Wahrheit liegt.
+Wahrheit liegt. Ein Messplan dafür steht in [TODO.md](TODO.md).
 
 #### Vorsicht: „Leistungsfaktor" ist nicht gleich Leistungsfaktor
 
