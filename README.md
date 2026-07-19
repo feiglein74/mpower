@@ -145,6 +145,26 @@ Genauer als über MQTT geht es per SSH, dann aber nur auf Abruf:
 Der Unterschied: Das Gerät rundet auf ganze Wattstunden (`11`), SSH liefert den
 vollen Wert (`10.94`). Die Umrechnung ist `cf_count<N> × 0,3125 Wh`.
 
+**Der Zähler springt bei Stromausfall auf null.** `cf_count` und `energy_sum`
+liegen in `/proc`, also im RAM. Nachgemessen an der Tagesstatistik über einen
+Neustart hinweg:
+
+```
+1)13:00=36     letzter Wert vor dem Stromausfall
+1)14:00=9      danach faengt der Zaehler wieder bei null an
+1)15:00=27
+```
+
+Deshalb steht der Sensor auf `"state_class": "total_increasing"` und nicht auf
+`"total"`: Home Assistant deutet einen Rückwärtssprung damit als Zählerreset und
+addiert korrekt weiter. Mit `"total"` würde nach jedem Stromausfall ein negativer
+Verbrauch verbucht.
+
+Die **Historie überlebt** dagegen: Das Gerät schreibt Stundenwerte nach
+`/etc/persistent/data/<JJJJ-MM-TT>` und Monatssummen nach
+`/etc/persistent/data/<JJJJ-MM>:<port>`. Diese Dateien bleiben über Neustarts
+erhalten — die ältesten auf diesem Gerät stammen von August 2020.
+
 | Topic | Inhalt |
 |---|---|
 | `mpower/<node>/availability` | `online` / `offline` (LWT) |
@@ -308,6 +328,31 @@ Assistant `$online = false` und eingefrorene Werte aus der letzten Sitzung
 Ebenfalls beachten: Die Relais gehen nach Stromausfall **auf EIN**. Für
 angeschlossene Geräte, die nicht selbsttätig wieder anlaufen sollen, ist das
 relevant.
+
+### Betriebsbeobachtungen
+
+Nach knapp drei Stunden Dauerbetrieb gemessen:
+
+| Kennzahl | Wert |
+|---|---|
+| `spi_err_counter` | `0` — fehlerfreie Kommunikation mit dem Messchip |
+| Speicher | 21 128 KB von 29 564 KB belegt (bei Boot: 21 236 KB) — kein Leck |
+| MQTT-Client | unveränderte PIDs, keine Neustarts |
+| Uhrzeit | sekundengenau synchron (NTP funktioniert) |
+
+Im Syslog fallen drei Muster auf, die **harmlos** sind und leicht falsch gedeutet
+werden:
+
+- `ace_reporter: server unreachable` und `dns resolv failed`, rund 40× pro Stunde.
+  Das ist `mcad`, das weiterhin den fest einkompilierten Namen `mfi` sucht. Der
+  existiert nicht — die DNS-Auflösung an sich funktioniert einwandfrei.
+- `ntpclient ... exited. Scheduling for restart.` — kein Fehler. `ntpclient`
+  synchronisiert, beendet sich und wird von init planmäßig neu gestartet.
+- `avahi-daemon starting up / exiting`, gehäuft nach dem Booten. Avahi scheitert
+  an `inotify` (im Kernel 2.6.32 nicht vorhanden), stabilisiert sich danach aber.
+
+Das Log rotiert bei 200 KB ohne Backups (`syslogd -s 200 -b 0`), läuft also nicht
+voll.
 
 ## Zwei MQTT-Wege
 
