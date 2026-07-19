@@ -801,6 +801,29 @@ Ein früherer Wert von 2,6 W stammte vom Shelly und wurde zeitversetzt gemessen 
 ob die Differenz Messfehler oder ein erwischter Aktivitätspeak war, lässt sich
 aus zwei Einzelwerten nicht trennen.
 
+#### Die Relais brauchen Haltestrom
+
+Es sind **keine bistabilen Relais** — jede angezogene Spule kostet dauerhaft
+Leistung. Gemessen mit einer Glühlampe als Stromsockel (damit die Janitza im
+zuverlässigen Bereich arbeitet) und Differenzbildung gegen die mPower-Messung:
+
+```
+1 Relais angezogen    41,8 W − 39,906 W = 1,894 W
+1 Relais, Wiederholung 42,0 W − 40,101 W = 1,899 W    ← 5 mW Unterschied
+3 Relais angezogen    42,8 W − 40,040 W = 2,760 W
+                                          ─────────
+zwei zusätzliche Spulen                   0,863 W  →  rund 0,43 W je Relais
+```
+
+Bei drei angezogenen Relais entfällt damit **etwa die Hälfte der gesamten
+Leistungsaufnahme** auf die Spulen. Wer eine Steckdose dauerhaft nicht braucht,
+spart durch Ausschalten also zusätzlich ein knappes halbes Watt.
+
+**Offen:** Zwei frühere Messungen mit zwei angezogenen Relais ergaben 2,01 und
+2,06 W, wo ein lineares Modell 2,33 W erwarten ließe. In beiden Fällen war
+Port 1 aus und die Ports 2 und 3 an. Möglicherweise ziehen die Spulen nicht
+gleich viel — belegt ist das nicht, dafür fehlen die übrigen Kombinationen.
+
 #### Ein Lehrbuchbeispiel für Oberwellen
 
 Die Leiste versorgt sich über ein kleines Schaltnetzteil ohne
