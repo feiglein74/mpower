@@ -235,10 +235,38 @@ Storing Active[1] ... [%0][%63][%100]
 Active->Backup[2] ... [%0][%63][%100]
 ```
 
+### Sicherung des Geräts
+
+`backup-device.py` lädt `/etc/persistent/` vollständig herunter (566 Dateien,
+jede gegen `md5sum` auf dem Gerät verifiziert):
+
+```bash
+./backup-device.py
+```
+
+Die Übertragung läuft per `cat` über einen SSH-`exec`-Kanal — Dropbear 0.51 hat
+keinen SFTP-Server, und BusyBox bringt kein `base64` mit. Ohne PTY kommen Rohbytes
+unverfälscht durch, solange man sie nicht dekodiert; deshalb bleiben auch die
+MIPS-Binaries (`mosquitto_pub`, `libmosquitto.so.1`) heil.
+
+Nebenbefund: Unter `data/` liegen ~548 Dateien Verbrauchshistorie, tageweise ab
+August 2020.
+
+### Nicht im Repository
+
+Zwei Dateien der Sicherung enthalten Geheimnisse und sind per `.gitignore`
+ausgeschlossen. **Sie liegen lokal vor und werden für ein Rollback gebraucht** —
+wer das Repository klont, hat sie nicht:
+
+| Datei | Inhalt | Vorlage im Repo |
+|---|---|---|
+| `backup-geraet/cfg/mgmt` | `mgmt.authkey`, `mgmt.cloud_pass` | `cfg/mgmt.beispiel` |
+| `backup-geraet/mqtt/client/mqtt.cfg` | Broker-Passwort | `mqtt/client/mqtt.cfg.beispiel` |
+
 ### Rückgängig machen
 
 ```bash
-# Originaldateien zurückspielen (aus backup-geraet/) und dann:
+# Originaldateien aus backup-geraet/ zurückspielen, dann ins Flash schreiben:
 cfgmtd -w -p /etc/
 ```
 
