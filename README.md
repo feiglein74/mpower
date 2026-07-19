@@ -129,8 +129,10 @@ blieb unangetastet, da ihre Funktion ohne Controller unklar ist.
 - HA speichert manuelle Umbenennungen in der Entity Registry, und die haben
   Vorrang vor dem `name` aus der Discovery-Nachricht. Die Bridge kann also
   jederzeit erneut mit `--once` laufen, ohne die Namen zu überschreiben.
-- Die Gerätekonfiguration ist unzuverlässig: `vpower_cfg` wurde beim Neustart
-  trotz `cfgmtd` zurückgesetzt. Ob `config_file` sich anders verhält, ist offen.
+- Es ist der robustere Ort. `config_file` übersteht zwar einen Stromausfall
+  (geprüft), aber die Namen liegen dort in einer Firmware-Konfiguration, deren
+  Verhalten wir nur empirisch kennen — `vpower_cfg` etwa wird trotz `cfgmtd`
+  zurückgesetzt.
 
 Wer die Labels trotzdem am Gerät setzen will, findet den Weg bei
 [TinkerTry](https://tinkertry.com/how-to-configure-ubiquiti-mpower-pro-outlet-names-without-mfi-controller)
