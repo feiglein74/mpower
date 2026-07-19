@@ -562,6 +562,55 @@ Ein Schaltnetzteil taugt als Referenz übrigens nicht: Ein Notebook (PF ≈ 0,4)
 schwankte im Test um σ = 1,63 W bei 9,22 W Mittelwert, also 18 % — darin
 verschwindet jeder Messfehler des Geräts.
 
+### Quervergleich mit einem Shelly 4PM
+
+Die Leiste hing hinter einem Shelly 4PM, sodass beide Geräte dieselben Lasten
+sehen konnten. Gemessen an einem **linear geregelten Trafo-Labornetzteil** —
+induktiv und nichtlinear, also eine ganz andere Lastart als die Glühlampe.
+
+| Last | mPower | Shelly | Differenz |
+|---|---|---|---|
+| Labornetzteil, Leerlauf | 14,30 W | 15,70 W | **−8,9 %** |
+| Labornetzteil, 1 A / 12 V | 33,28 W | 34,90 W | **−4,6 %** |
+| Glühlampe 40 W (ohmsch) | 39,62 W | — (gegen Nennwert) | −1,5 % |
+
+Der mPower liest bei verzerrten Lasten durchweg niedriger, bei ohmscher Last
+kaum. Das deutet darauf hin, dass beide Geräte **Oberwellen unterschiedlich in
+die Wirkleistung einrechnen** — ein bekannter Unterschied zwischen Messchips.
+Ohne kalibriertes Referenzgerät ist nicht auflösbar, welches näher an der
+Wahrheit liegt.
+
+#### Vorsicht: „Leistungsfaktor" ist nicht gleich Leistungsfaktor
+
+Die Anzeigen beider Geräte schienen sich zunächst zu widersprechen —
+`U × I × PF` ergab beim Shelly nie die angezeigte Leistung. Die Auflösung: Die
+beiden melden **verschiedene Größen**.
+
+| Last | PF echt (`P/S`) | Shelly zeigt | mPower zeigt |
+|---|---|---|---|
+| mPower-Leiste selbst (Schaltnetzteil) | 0,354 | 0,70 | — |
+| Notebook-Netzteil (Schaltnetzteil) | 0,406 | 0,70 | 0,41 |
+| Labornetzteil belastet (Trafo) | 0,531 | 0,50 | 0,499 |
+
+Der **mPower meldet den echten Leistungsfaktor** `P/S`, der **Shelly offenbar den
+Verschiebungsfaktor** `cos φ` der Grundschwingung. Der Beleg liegt darin, *wann*
+sie auseinanderlaufen: Bei den Schaltnetzteilen klafft eine Lücke, weil deren
+verzerrter Strom den echten PF weit unter `cos φ` drückt. Beim Trafo-Netzteil,
+das die Phase verschiebt aber kaum verzerrt, stimmen beide fast überein.
+
+Wer Werte zweier Messgeräte vergleicht, sollte das prüfen, bevor er aus einer
+Differenz auf einen Messfehler schließt.
+
+### Eigenverbrauch der Leiste: 2,6 W
+
+Gemessen, indem alle Ports leer geschaltet wurden — der mPower meldete über 13
+Messungen exakt `0,000 W` auf allen dreien, der vorgeschaltete Shelly zeigte
+weiterhin **2,6 W**. Das ist der Verbrauch der Leiste selbst: WLAN, SoC, Relais
+und Messelektronik.
+
+Rund 23 kWh im Jahr, nur fürs Dasein. Erklärt auch, warum das Gehäuse handwarm
+wird.
+
 ### Vom Messchip bis zum Wert in Home Assistant
 
 Wo unterwegs Stellen verlorengehen:
