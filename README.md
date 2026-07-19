@@ -382,22 +382,36 @@ trägt aber nicht:** Zeigt man `ntpclient` auf einen Host, der gar nicht
 antwortet, bleibt er hängen, statt sich zu beenden. Die Ursache der Neustarts
 ist damit weiterhin offen.
 
-**Kein lokaler NTP-Server verfügbar.** Naheliegend wäre, statt des Pools den
-eigenen Router einzutragen. In diesem Netz geht das nicht — mit einem
-NTP-Client-Paket (UDP 123) geprüft:
+**Ein lokaler Zeitserver ändert nichts an den Neustarts.** Das wurde getestet:
+Auf `10.0.0.251` läuft inzwischen `chrony` (Stratum 3), vom Gerät aus erreichbar
+und mit rund 26 ms Abweichung. Umgestellt wurde an zwei Stellen —
+`ntpclient.1.server` in `system.cfg` und die Aufrufzeile in `/etc/inittab` —,
+danach `cfgmtd -w -p /etc /tmp/system.cfg`.
 
-| Host | Rolle | Antwort |
-|---|---|---|
-| `10.10.1.1` | Gateway des Geräts | keine |
-| `10.0.0.251` | DNS-Server | keine |
-| `10.0.0.1` | Gateway im Hauptnetz | keine |
-| `10.0.0.171` | Home Assistant | keine |
+Ergebnis: Die Uhr läuft weiterhin sekundengenau, die Neustartrate blieb aber
+praktisch gleich (vorher ~93/h, danach ~100/h). **Die Ursache liegt also nicht
+am Zeitserver**, sondern in der Aufrufweise `-c 0 -l` aus der inittab-Zeile.
 
-Ein Umstellen auf `ntpclient.1.server=10.10.1.1` würde die Zeitsynchronisation
-also **kaputtmachen**, nicht verbessern. Wer die Neustarts trotzdem loswerden
-will, bräuchte einen echten NTP-Dienst im LAN (etwa `chrony` auf dem
-Home-Assistant-Host) und würde erst danach umstellen. Da die Uhr über
-`pool.ntp.org` sekundengenau läuft, besteht kein funktionaler Anlass.
+Behalten wurde die lokale Quelle trotzdem: gleiche Genauigkeit, 5 ms statt
+Internetlatenz und keine Abhängigkeit von externer Erreichbarkeit.
+
+Wer einen eigenen Zeitserver aufsetzen will — `systemd-timesyncd` kann das
+**nicht**, es ist reiner Client. Mit `chrony`:
+
+```conf
+# /etc/chrony/chrony.conf
+allow 10.0.0.0/24
+allow 10.10.1.0/24
+local stratum 10        # liefert weiter Zeit, auch ohne Internet
+```
+
+```bash
+sudo systemctl restart chrony
+sudo ss -lunp | grep :123    # muss 0.0.0.0:123 zeigen, nicht 127.0.0.1:123
+```
+
+Die letzte Zeile ist der eigentliche Beweis: Bindet chrony nur an Localhost,
+fehlt ein `allow`.
 
 ## Zwei MQTT-Wege
 
