@@ -11,8 +11,9 @@ Stand: 2026-07-19
 
 - Die „3-fach"-Steckdose ist die **mFi mPower** (3 Ausgänge). Daneben gibt es
   **mPower mini** (1 Ausgang) und **mPower Pro** (6/8 Ausgänge).
-- Alle laufen auf einem Atheros-SoC (AR9331, wie viele frühe UniFi-APs) mit einem
-  OpenWrt-ähnlichen Linux **ab Werk**.
+- Alle laufen auf einem Atheros-SoC mit einem OpenWrt-ähnlichen Linux **ab Werk**.
+  (Am eigenen Gerät nachgemessen: **AR9330 „Hornet"**, nicht AR9331 — die beiden
+  sind nah verwandt, aber `/proc/cpuinfo` sagt eindeutig AR9330.)
 - Ubiquiti mFi ist EOL. Cloud-/Controller-Support bröckelt, aber die Hardware läuft
   lokal per SSH weiter.
 
@@ -74,10 +75,28 @@ Stand: 2026-07-19
 
 ---
 
-## Nächste Schritte / offene Fragen
+## Stand der offenen Fragen
 
-- [ ] Genaues Modell bestätigen (mPower / mini / Pro, EU-Stecker?)
-- [ ] Ziel festlegen: nur lokal ohne Cloud schalten / Home Assistant + MQTT /
-      eigenes Firmware-Image bauen
-- [ ] SSH-Zugang testen und `/proc/power/`-Layout auf dem eigenen Gerät verifizieren
-- [ ] Autostart-Skript-Ansatz vs. echtes Flashen bewerten
+Alle Punkte dieser Notizen sind inzwischen am realen Gerät geklärt. Die
+Ergebnisse stehen ausführlich in [README.md](README.md).
+
+- [x] **Genaues Modell** — mFi mPower EU, 3 Ausgänge, Firmware `MF.v2.1.8`,
+      AR9330, 32 MB RAM, 8 MB Flash (rootfs zu 100 % belegt).
+- [x] **Ziel festgelegt** — lokal ohne Cloud, angebunden an Home Assistant über
+      MQTT. Kein eigenes Firmware-Image.
+- [x] **SSH-Zugang und `/proc/power/`** — funktioniert, braucht aber Legacy-Krypto
+      (Dropbear 0.51: nur `diffie-hellman-group1-sha1`, `ssh-rsa`, `aes128-cbc`).
+      Benutzer ist `admin`, nicht `ubnt`. Layout verifiziert.
+- [x] **Autostart statt Flashen** — bestätigt als richtiger Weg. Mainline-OpenWrt
+      unterstützt die mPower-Serie nicht (keine Treffer im `ath79`-Baum, kein DTS,
+      kein ToH-Eintrag). Ohne serielle Konsole wäre ein Fehlversuch endgültig.
+
+### Zusätzlich herausgefunden
+
+- Die **HTTP-API** kann alles außer dem Energiezähler und ist die bequemere Basis
+  als SSH. Geschaltet wird über `PUT /sensors/<port>`.
+- Auf dem Gerät waren die **mFi-tools bereits installiert** und publizierten an
+  einen längst abgeschalteten Broker. Umbiegen genügte — sie können schalten,
+  melden und zählen, ganz ohne fremden Rechner.
+- Das **LED-Blinken** war die Suche nach dem verschwundenen mFi-Controller. Nach
+  Entfernen der toten Adressen aus `cfg/mgmt` hört es auf.

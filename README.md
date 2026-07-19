@@ -432,3 +432,12 @@ Leiste, sondern mit der alten Controller-Software (Port 6080/6443), ist seit HA
 2022.7 defekt, und
 [Issue #120042](https://github.com/home-assistant/core/issues/120042) wurde als
 "not planned" geschlossen.
+
+Weitere Quellen und Recherchenotizen: [QUELLEN.md](QUELLEN.md).
+
+## Lizenz
+
+MIT — siehe [LICENSE](LICENSE). Die unter `backup-geraet/mqtt/` gesicherten
+Dateien stammen aus der Gerätefirmware bzw. den
+[mFi-tools](https://github.com/maletazul/mFi-tools) und stehen unter den
+Bedingungen ihrer jeweiligen Urheber.
