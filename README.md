@@ -346,13 +346,48 @@ werden:
 - `ace_reporter: server unreachable` und `dns resolv failed`, rund 40× pro Stunde.
   Das ist `mcad`, das weiterhin den fest einkompilierten Namen `mfi` sucht. Der
   existiert nicht — die DNS-Auflösung an sich funktioniert einwandfrei.
-- `ntpclient ... exited. Scheduling for restart.` — kein Fehler. `ntpclient`
-  synchronisiert, beendet sich und wird von init planmäßig neu gestartet.
+- `ntpclient ... exited. Scheduling for restart.` — **gemessen ~93× pro Stunde**
+  (15 Neustarts in 9 min 43 s), in Bündeln von zwei bis drei Starts alle rund
+  2,5 Minuten. Dazwischen läuft der Prozess stabil. Die Uhr stimmt trotzdem
+  sekundengenau, es ist also kein funktionales Problem — aber auch kein
+  geplantes Verhalten, sondern Verschleiß auf einem 400-MHz-Chip.
 - `avahi-daemon starting up / exiting`, gehäuft nach dem Booten. Avahi scheitert
   an `inotify` (im Kernel 2.6.32 nicht vorhanden), stabilisiert sich danach aber.
 
 Das Log rotiert bei 200 KB ohne Backups (`syslogd -s 200 -b 0`), läuft also nicht
 voll.
+
+### Zeitsynchronisation
+
+Die Uhrzeit kommt von **`pool.ntp.org`**, direkt aus dem Internet:
+
+```
+/etc/inittab:       null::respawn:/sbin/ntpclient -n -s -c 0 -l -h pool.ntp.org
+/tmp/system.cfg:    ntpclient.1.server=pool.ntp.org
+                    ntpclient.1.status=enabled
+Zeitzone:           TZ=GMT-1GDT   (POSIX-Notation für UTC+1 mit Sommerzeit)
+```
+
+Der Weg dorthin funktioniert nachweislich: DNS über `10.0.0.251` löst
+`pool.ntp.org` auf, der Zeitserver antwortet in 13 ms, und die Gerätezeit stimmt
+sekundengenau. Das Kürzel `GDT` im `date`-Ausgabe ist nur der generische
+Sommerzeit-Name aus der POSIX-Zeitzone, kein Fehler.
+
+Ungeklärt bleibt, **warum** der Prozess sich alle paar Minuten beendet.
+`ntpclient` schreibt selbst nichts ins Log — nur init meldet das Beenden. Eine
+naheliegende, aber **nicht verifizierte** Vermutung: `pool.ntp.org` liefert bei
+jeder Auflösung wechselnde Adressen, und bei einer nicht erreichbaren steigt der
+Client aus. Wer das abstellen will, könnte einen festen, gut erreichbaren Server
+eintragen — etwa den eigenen Router:
+
+```bash
+# in /tmp/system.cfg aendern, dann persistieren:
+ntpclient.1.server=10.10.1.1
+cfgmtd -w -p /etc /tmp/system.cfg
+```
+
+Getestet wurde das hier nicht. Da die Uhr ohnehin korrekt läuft, ist es reine
+Kosmetik.
 
 ## Zwei MQTT-Wege
 
