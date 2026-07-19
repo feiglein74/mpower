@@ -1,0 +1,49 @@
+# systemd-Unit fuer die MQTT-Bridge (Benutzerdienst, kein root noetig).
+#
+# NUR NOETIG FUER --source bridge. Im Modus "device" liest Home Assistant direkt
+# vom Geraet; dann genuegt ein einmaliges
+#     ./mqtt_bridge.py --source device --once
+# und dieser Dienst wird nicht gebraucht. Der Dauerlauf lohnt sich nur, wenn du
+# die schnellere Aktualisierung (15 s statt 60 s) und den Strom-Sensor willst,
+# den die geraeteseitigen mFi-tools nicht publizieren.
+#
+# Installieren:
+#   mkdir -p ~/.config/systemd/user
+#   cp /home/feig/mpower/mpower-mqtt.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now mpower-mqtt.service
+#
+# Kontrollieren:
+#   systemctl --user status mpower-mqtt.service
+#   journalctl --user -u mpower-mqtt.service -f
+#
+# Damit der Dienst auch ohne angemeldete Sitzung laeuft:
+#   sudo loginctl enable-linger feig
+
+[Unit]
+Description=mFi mPower MQTT-Bridge (Home Assistant Autodiscovery)
+Documentation=file:///home/feig/mpower/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/feig/mpower
+ExecStart=/usr/bin/python3 /home/feig/mpower/mqtt_bridge.py --interval 15
+Restart=always
+RestartSec=15
+
+# Zugangsdaten kommen aus ~/.config/mpower/config.ini (chmod 600).
+# Alternativ hier ueberschreiben:
+#   Environment=MQTT_USER=tasmota
+#   Environment=MQTT_PW=...
+
+# Die Bridge braucht nur Netzwerk und ihre Konfigdatei.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/feig/mpower
+
+[Install]
+WantedBy=default.target

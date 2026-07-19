@@ -1,0 +1,5 @@
+vpower.1.enabled=on
+vpower.1.lock=0
+vpower.1.relay=1
+vpower.2.enabled=off
+vpower.3.enabled=off

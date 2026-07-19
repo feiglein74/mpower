@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+
+# Enthaelt das Klartext-Passwort des MQTT-Brokers. Die uebrige Geraetesicherung
+# ist absichtlich versioniert -- nur diese eine Datei nicht.
+backup-geraet/mqtt/client/mqtt.cfg
+
+# Falls jemand die lokale Konfiguration doch ins Projekt legt.
+config.ini
+
+# Enthaelt mgmt.authkey und mgmt.cloud_pass des Geraets. Fuer ein Rollback
+# lokal noetig, gehoert aber nicht in ein veroeffentlichtes Repository.
+# Die bereinigte Struktur steht in cfg/mgmt.beispiel.
+backup-geraet/cfg/mgmt

@@ -1,0 +1,5 @@
+mqtthost=<DEIN-BROKER>
+mqttusername=<DEIN-MQTT-BENUTZER>
+mqttpassword=<DEIN-MQTT-PASSWORT>
+refresh=60
+topic=mfi/mpower

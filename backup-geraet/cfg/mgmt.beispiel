@@ -1,0 +1,8 @@
+mgmt.is_default=false
+mgmt.led_enabled=true
+mgmt.cfgversion=99bcca58fb021af3
+mgmt.portversion=e8c7d3a1e78b1cd4
+mgmt.authkey=<ENTFERNT: geraeteeigener Schluessel>
+mgmt.cloud_name=admin
+mgmt.cloud_pass=<ENTFERNT: Passwort-Hash>
+mgmt.selfrun_guest_mode=pass
