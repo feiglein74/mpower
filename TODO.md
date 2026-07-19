@@ -76,6 +76,16 @@ obwohl der Chip 0,3125 Wh je Impuls auflöst. Ein 5-W-Verbraucher braucht dadurc
 einen Neustart übersteht, ist offen — `vpower_cfg` wird von der Firmware
 ebenfalls zurückgesetzt, trotz `cfgmtd`.
 
+### Überlebt die Label-Entfernung einen Neustart?
+
+`port.0.label=Notebook` wurde aus `/etc/persistent/cfg/config_file` entfernt und
+mit `cfgmtd` geschrieben; die API liefert seitdem für alle drei Ports kein Label
+mehr. **Ungeprüft ist, ob das einen Neustart übersteht** — `vpower_cfg` wurde
+seinerzeit trotz erfolgreichem `cfgmtd` zurückgesetzt. Taucht „Notebook" nach
+einem Stromausfall wieder auf, schreibt die Firmware auch `config_file` neu.
+
+Nebenbei beim nächsten ohnehin anstehenden Neustart prüfbar, kein eigener Anlass.
+
 ### Log-Spam von `mcad`
 
 Rund 40 Einträge pro Stunde, weil `mcad` weiterhin den fest einkompilierten

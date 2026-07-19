@@ -108,15 +108,21 @@ Beenden korrekt `offline`. Entweder als Dienst starten (`mpower-mqtt.service`) o
 
 ### Benennung der Entitäten
 
-Die Namen stammen aus zwei Quellen:
+Auf diesem Gerät sind **keine Labels gesetzt** — das ist der Auslieferungszustand.
+Die API liefert dann kein `label`-Feld, und `mpower.py` setzt den Rückfall
+`Port <N>` ein. Das Gerät kennt diese Namen also gar nicht.
+
+Labels würden in `/etc/persistent/cfg/config_file` stehen, **nullbasiert**:
 
 ```
-/etc/persistent/cfg/config_file:  port.0.label=Notebook   ← nullbasiert, port.0 = Port 1
-                                  port.1, port.2          ← kein Label gesetzt
+port.0.label=...    ← physischer Port 1
+port.1.label=...    ← physischer Port 2
 ```
 
-Wo ein Label fehlt, setzt `mpower.py` den Rückfall `Port <N>` ein — das Gerät
-kennt diese Namen also gar nicht.
+Hier stand ursprünglich `port.0.label=Notebook`, vermutlich vom alten
+mFi-Controller vergeben. Der Eintrag wurde entfernt, damit alle drei Ports
+einheitlich bei den Defaults starten; die daneben stehende `port.0.sensorId`
+blieb unangetastet, da ihre Funktion ohne Controller unklar ist.
 
 **Umbenannt wird bewusst in Home Assistant, nicht am Gerät.** Zwei Gründe:
 
