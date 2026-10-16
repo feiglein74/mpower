@@ -21,3 +21,7 @@ backup-geraet/data/
 # Hersteller-Datenblatt, nicht unser Werk -- Urheberrecht liegt bei Prolific.
 # Bezugsquelle steht im README.
 PL7223.PDF
+
+# Enthaelt WLAN-PSK und den Passwort-Hash des Geraete-Admins. Lokal fuer ein
+# Rollback noetig; die bereinigte Fassung steht in system.cfg.vor-ntp-aenderung.beispiel.
+backup-geraet/system.cfg.vor-ntp-aenderung

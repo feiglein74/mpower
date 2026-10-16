@@ -313,7 +313,7 @@ August 2020.
 
 ### Nicht im Repository
 
-Zwei Dateien der Sicherung enthalten Geheimnisse und sind per `.gitignore`
+Drei Dateien der Sicherung enthalten Geheimnisse und sind per `.gitignore`
 ausgeschlossen. **Sie liegen lokal vor und werden für ein Rollback gebraucht** —
 wer das Repository klont, hat sie nicht:
 
@@ -321,6 +321,7 @@ wer das Repository klont, hat sie nicht:
 |---|---|---|
 | `backup-geraet/cfg/mgmt` | `mgmt.authkey`, `mgmt.cloud_pass` | `cfg/mgmt.beispiel` |
 | `backup-geraet/mqtt/client/mqtt.cfg` | Broker-Passwort | `mqtt/client/mqtt.cfg.beispiel` |
+| `backup-geraet/system.cfg.vor-ntp-aenderung` | WLAN-PSK, Passwort-Hash `admin` | `system.cfg.vor-ntp-aenderung.beispiel` |
 
 ### Rückgängig machen
 
