@@ -1,3 +1,68 @@
+# mpower — local control for the Ubiquiti mFi mPower power strip
+
+![License](https://img.shields.io/github/license/feiglein74/mpower)
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)
+![Interface](https://img.shields.io/badge/interface-HTTP%20API%20%2F%20MQTT-555)
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-MQTT%20discovery-41BDF5?logo=homeassistant&logoColor=white)
+
+A command-line client and MQTT bridge for the **Ubiquiti mFi mPower** smart power
+strip. It runs without the mFi cloud or controller, both of which Ubiquiti has
+discontinued. It talks to the strip's built-in local HTTP API (`/mfi/sensors.cgi`).
+The strip shows up in Home Assistant through MQTT discovery.
+
+```text
+$ ./mpower.py status
+mPower @ 192.168.1.50
+  P  Zustand    Leistung      Strom   Spannung          Name
+  1  AN      0.00 W   0.000 A   230.1 V  pf=0.00  Port 1
+  2  AN      0.00 W   0.000 A   230.2 V  pf=0.00  Port 2
+  3  AN      0.00 W   0.026 A   230.4 V  pf=0.00  Port 3
+     Summe:     0.00 W
+```
+
+### Quickstart
+
+```bash
+git clone https://github.com/feiglein74/mpower && cd mpower
+export MPOWER_HOST=192.168.1.50 MPOWER_USER=admin MPOWER_PW='<password>'
+
+./mpower.py status              # state, power, current, voltage of every outlet
+./mpower.py on 2                # switch outlet 2 on (also: off, toggle, watch)
+
+pip install paho-mqtt           # only needed for the MQTT bridge
+./mqtt_bridge.py -n 15          # mirror to MQTT every 15 s, HA autodiscovery
+```
+
+`mpower.py` uses only the Python standard library. Settings can also go in
+`~/.config/mpower/config.ini` (see [Benutzung](#benutzung)).
+
+> Detailed documentation is in German.
+
+### Summary of findings
+
+- **Tested device:** mFi mPower EU, 3 outlets, firmware `MF.v2.1.8`, Atheros
+  AR9330. Other mPower models (US, mPower Pro) use the same API but have not been
+  tested.
+- **API pitfalls:** If the outlet number in `POST /mfi/sensors.cgi` is not sent
+  as `id`, the strip switches **all** outlets. `POST /mfi/sensors.cgi/<port>`
+  returns HTTP 200 and does nothing. Expired sessions return HTML instead of
+  401. The client switches with `PUT /sensors/<port>` and reads the state back
+  after every write.
+- **No HTTPS:** the firmware only offers TLS 1.0 with a 512-bit certificate,
+  which modern OpenSSL rejects. This is also why the Home Assistant `mfi`
+  integration stopped working. Use plain HTTP on a trusted LAN only.
+- **Measurement accuracy:** compared against a Janitza UMG 96RM power analyzer
+  at four reference points (2–42 W, resistive, inductive and capacitive loads).
+  The mPower's active power reading stayed within **2 %** at all of them. Short load spikes are
+  under-reported because of the meter's averaging window.
+- **Self-consumption:** about 2.1 W for the strip, plus about 0.43 W for each
+  energized relay coil.
+- **SSH fallback:** Dropbear 0.51 accepts only legacy algorithms. Outlets can be
+  switched directly through `/proc/power/relayN`. OpenWrt does not support this
+  device, so the stock firmware stays.
+
+---
+
 # mPower — lokale Steuerung einer Ubiquiti mFi mPower
 
 Ubiquiti hat die mFi-Plattform eingestellt: Cloud und Controller sind tot, die
@@ -1034,4 +1099,4 @@ Weitere Quellen und Recherchenotizen: [QUELLEN.md](QUELLEN.md).
 MIT — siehe [LICENSE](LICENSE). Die unter `backup-geraet/mqtt/` gesicherten
 Dateien stammen aus der Gerätefirmware bzw. den
 [mFi-tools](https://github.com/maletazul/mFi-tools) und stehen unter den
-Bedingungen ihrer jeweiligen Urheber.
+Bedingungen ihrer jeweiligen Urheber — siehe [QUELLEN.md](QUELLEN.md).

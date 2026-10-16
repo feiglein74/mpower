@@ -19,10 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Hinweis: Diese Lizenz gilt für den Code und die Dokumentation in diesem
-Repository. Die unter backup-geraet/mqtt/ gesicherten Dateien stammen aus der
-Firmware des Geräts bzw. aus den mFi-tools und stehen unter den Bedingungen
-ihrer jeweiligen Urheber -- siehe QUELLEN.md.
